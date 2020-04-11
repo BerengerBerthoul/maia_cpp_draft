@@ -1,6 +1,8 @@
 ## Global config ##
 cmake_minimum_required(VERSION 3.12)
 
+find_package(Git 2.14 REQUIRED)
+
 execute_process(COMMAND git rev-parse --show-superproject-working-tree
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   OUTPUT_VARIABLE git_root_dir_with_space
@@ -20,6 +22,32 @@ project(
   DESCRIPTION	"Mesh algorithms and manipulations"
   LANGUAGES	CXX
 )
+
+
+## Dependencies ##
+include(FetchContent)
+### doctest ###
+FetchContent_Declare(
+  doctest
+  GIT_REPOSITORY https://github.com/onqtam/doctest.git
+  GIT_TAG        2.3.7
+)
+FetchContent_GetProperties(doctest)
+if(NOT doctest_POPULATED)
+  FetchContent_Populate(doctest)
+  add_subdirectory(${doctest_SOURCE_DIR} ${doctest_BINARY_DIR})
+endif()
+### range-v3 ###
+FetchContent_Declare(
+  range-v3
+  GIT_REPOSITORY https://github.com/ericniebler/range-v3
+  GIT_TAG        0.10.0
+)
+FetchContent_GetProperties(range-v3)
+if(NOT range-v3_POPULATED)
+  FetchContent_Populate(range-v3)
+  add_subdirectory(${range-v3_SOURCE_DIR} ${range-v3_BINARY_DIR})
+endif()
 
 
 ## Find files ##
@@ -51,18 +79,14 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_add_dependency(${PROJECT_NAME} std_e)
 target_add_dependency(${PROJECT_NAME} cpp_cgns)
-add_subdirectory(tmp/range-v3) # TODO use target_add_dependency (adapt it)
-#add_subdirectory(tmp/cmcstl2) # TODO use target_add_dependency (adapt it)
 target_link_libraries(${PROJECT_NAME}
   PUBLIC 
     std_e::std_e
     cpp_cgns::cpp_cgns
-    range-v3
-    #stl2
+    range-v3::range-v3
 )
 
 add_executable(${PROJECT_NAME}_unit_tests ${test_files})
-target_add_dependency(${PROJECT_NAME}_unit_tests doctest)
 target_link_libraries(${PROJECT_NAME}_unit_tests
   PUBLIC
     ${PROJECT_NAME}
