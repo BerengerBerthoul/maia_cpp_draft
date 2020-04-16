@@ -14,7 +14,7 @@ template<
   class face_connectivity_type,
   class I = typename face_connectivity_type::index_type,
   int N = face_connectivity_type::nb_nodes,
-  int connec_type = face_connectivity_type::type,
+  int connec_type = face_connectivity_type::elt_t,
   std::enable_if_t<connec_type==TRI_3 || connec_type==QUAD_4,int> =0
 > auto
 // requires face_connectivity_type is Element
@@ -32,7 +32,7 @@ generate_faces(const face_connectivity_type& e) {
 template<
   class cell_connectivity_type,
   class I = typename cell_connectivity_type::index_type,
-  std::enable_if_t<cell_connectivity_type::type==TETRA_4,int> =0
+  std::enable_if_t<cell_connectivity_type::elt_t==TETRA_4,int> =0
 > auto
 // requires cell_connectivity_type is Element
 generate_faces(cell_connectivity_type const& e)
@@ -50,7 +50,7 @@ generate_faces(cell_connectivity_type const& e)
 template<
   class cell_connectivity_type,
   class I = typename cell_connectivity_type::index_type,
-  std::enable_if_t<cell_connectivity_type::type==PYRA_5,int> =0
+  std::enable_if_t<cell_connectivity_type::elt_t==PYRA_5,int> =0
 > auto
 // requires cell_connectivity_type is Element
 generate_faces(cell_connectivity_type const& e) {
@@ -67,7 +67,7 @@ generate_faces(cell_connectivity_type const& e) {
 template<
   class cell_connectivity_type,
   class I = typename cell_connectivity_type::index_type,
-  std::enable_if_t<cell_connectivity_type::type==PENTA_6,int> =0
+  std::enable_if_t<cell_connectivity_type::elt_t==PENTA_6,int> =0
 > auto
 // requires cell_connectivity_type is Element
 generate_faces(cell_connectivity_type const& e) {
@@ -84,7 +84,7 @@ generate_faces(cell_connectivity_type const& e) {
 template<
   class cell_connectivity_type,
   class I = typename cell_connectivity_type::index_type,
-  std::enable_if_t<cell_connectivity_type::type==HEXA_8,int> =0
+  std::enable_if_t<cell_connectivity_type::elt_t==HEXA_8,int> =0
 > auto
 // requires cell_connectivity_type is Element
 generate_faces(cell_connectivity_type const& e)

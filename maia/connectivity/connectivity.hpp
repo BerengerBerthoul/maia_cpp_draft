@@ -3,6 +3,7 @@
 
 #include <array>
 #include "std_e/utils/type_traits.hpp"
+#include "std_e/future/span.hpp"
 
 
 template<class I, class Connectivity_kind> 
@@ -12,7 +13,7 @@ class connectivity {
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
     static constexpr int nb_nodes = kind::nb_nodes;
-    static constexpr int type = kind::type;
+    static constexpr int elt_t = kind::elt_t;
 
   // ctor
     constexpr
@@ -65,3 +66,9 @@ template<class I, class CK> constexpr auto begin(      connectivity<I,CK>& c) ->
 template<class I, class CK> constexpr auto begin(const connectivity<I,CK>& c) -> const I* { return c.begin(); }
 template<class I, class CK> constexpr auto end  (      connectivity<I,CK>& c) ->       I* { return c.end();   }
 template<class I, class CK> constexpr auto end  (const connectivity<I,CK>& c) -> const I* { return c.end();   }
+
+template<class I, class CK> constexpr auto
+to_string(const connectivity<I,CK>& c) -> std::string {
+  return std_e::to_string(std_e::make_span(begin(c),c.size()));
+}
+

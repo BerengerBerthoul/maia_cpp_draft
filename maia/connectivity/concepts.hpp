@@ -11,6 +11,7 @@ concept Heterogenous_connectivity_kind
   static constexpr int dimension
   static constexpr nb_nodes(int type) -> int
   static constexpr order(int type) -> int
+  template<class I> type_reference 
 
 
 concept Element

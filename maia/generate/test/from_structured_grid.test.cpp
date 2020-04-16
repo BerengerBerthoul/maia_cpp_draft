@@ -1,5 +1,4 @@
-#include "doctest/doctest.h"
-#include "std_e/utils/doctest_utils.hpp"
+#include "std_e/unit_test/doctest.hpp"
 
 #include "maia/generate/structured_grid_utils.hpp"
 #include "maia/generate/from_structured_grid.hpp"

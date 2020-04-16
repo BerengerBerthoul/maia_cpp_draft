@@ -139,16 +139,16 @@ class interleaved_connectivity_random_access_range {
     template<class Integer>
     auto operator[](Integer i) -> reference {
       auto pos = data() + idx_table[i];
-      auto& con_type_ref = *pos;
+      auto& elt_t_ref = *pos;
       auto con_start = pos+1;
-      return {con_type_ref,con_start};
+      return {elt_t_ref,con_start};
     }
     template<class Integer>
     auto operator[](Integer i) const -> const reference {
       auto pos = data() + idx_table[i];
-      auto& con_type_ref = *pos;
+      auto& elt_t_ref = *pos;
       auto con_start = pos+1;
-      return {con_type_ref,con_start};
+      return {elt_t_ref,con_start};
     }
 
     auto push_back(const reference c) -> void {

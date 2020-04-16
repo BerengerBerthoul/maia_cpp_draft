@@ -11,7 +11,7 @@ class connectivity_ref {
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
     static constexpr int nb_nodes = kind::nb_nodes;
-    static constexpr int type = kind::type;
+    static constexpr int elt_t = kind::elt_t;
 
   // ctors
     connectivity_ref(I* ptr)
@@ -25,10 +25,12 @@ class connectivity_ref {
 
     connectivity_ref& operator=(const connectivity_ref& other) {
       std::copy(other.ptr, other.ptr+other.size(), ptr);
+      return *this;
     }
     connectivity_ref& operator=(connectivity_ref&& other) {
       // even if the reference is temporary, we only care about the underlying values
       std::copy(other.ptr, other.ptr+other.size(), ptr);
+      return *this;
     }
 
     // operator= overloads for different const types {
@@ -36,12 +38,14 @@ class connectivity_ref {
     // requires I0 is I or const I
     operator=(const connectivity_ref<I0,kind>& other) -> decltype(auto) {
       std::copy(other.ptr, other.ptr+other.size(), ptr);
+      return *this;
     }
     template<class I0> auto
     // requires I0 is I or const I
     operator=(connectivity_ref<I0,kind>&& other) -> decltype(auto) {
       // even if the reference is temporary, we only care about the underlying values
       std::copy(other.ptr, other.ptr+other.size(), ptr);
+      return *this;
     }
     // }
 

@@ -35,7 +35,7 @@ class interleaved_connectivity_iterator {
 
   // iterator interface
     auto nb_nodes() const -> I {
-      return kind::nb_nodes(type_ref());
+      return kind::nb_nodes(elt_t_ref());
     }
     constexpr auto
     operator++() -> interleaved_connectivity_iterator& {
@@ -47,11 +47,11 @@ class interleaved_connectivity_iterator {
       throw std_e::not_implemented_exception("don't use postfix operator++");
     }
 
-    auto operator*() const -> reference { return {type_ref(),begin_nodes()}; }
+    auto operator*() const -> reference { return {elt_t_ref(),begin_nodes()}; }
     
     auto data() const -> I* { return ptr; }
   private:
-    auto type_ref() const -> I& {
+    auto elt_t_ref() const -> I& {
       return *ptr;
     }
     auto begin_nodes() const -> I* {

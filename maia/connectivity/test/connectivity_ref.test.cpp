@@ -1,39 +1,36 @@
 #include "std_e/unit_test/doctest.hpp"
 
-#include "maia/connectivity/heterogenous_connectivity_ref.hpp"
+#include "maia/connectivity/connectivity_ref.hpp"
 #include "maia/connectivity/test/test_utils.hpp"
 
 using namespace std;
 
-using con_ref_type = heterogenous_connectivity_ref<int,my_ngon_connectivity_kind>;
-using con_const_ref_type = heterogenous_connectivity_ref<const int,my_ngon_connectivity_kind>;
+using con_ref_type = connectivity_ref<int,my_connectivity_kind>;
+using con_const_ref_type = connectivity_ref<const int,my_connectivity_kind>;
 
 TEST_CASE("connectivity_ref") {
-  int connectivity_elt_t = 3;
   vector<int> vertices = {1,2,3};
   int* v_ptr = vertices.data();
   const int* v_const_ptr = vertices.data();
 
-  con_const_ref_type con_const_ref(connectivity_elt_t,v_const_ptr);
-  con_ref_type       con_ref_type (connectivity_elt_t,v_ptr      );
+
+
+  con_const_ref_type con_const_ref(v_const_ptr);
+  con_ref_type       con_ref_type      (v_ptr);
+
 
   SUBCASE("basic_tests") {
-    CHECK( con_ref_type.elt_t() == 3 );
-    CHECK( con_ref_type.size()  == 3 );
+    CHECK( con_ref_type.elt_t  == my_connectivity_type_id );
+    CHECK( con_ref_type.size() == 3                       );
   }
 
   SUBCASE("equality") {
-    int same_connectivity_elt_t = 3;
     vector<int> same_vertices = {1,2,3};
-    con_const_ref_type same(same_connectivity_elt_t,same_vertices.data());
+    con_const_ref_type same(same_vertices.data());
     CHECK( con_ref_type == same );
 
-    int different_connectivity_elt_t = 2;
-    con_const_ref_type different_type(different_connectivity_elt_t,same_vertices.data());
-    CHECK( con_ref_type != different_type );
-
     vector<int> different_vertices = {2,3,1};
-    con_const_ref_type different(same_connectivity_elt_t,different_vertices.data());
+    con_const_ref_type different(different_vertices.data());
     CHECK( con_ref_type != different );
   }
 

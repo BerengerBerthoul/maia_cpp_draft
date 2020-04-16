@@ -60,7 +60,7 @@ append_generated_faces(faces_heterogenous_container<I>& faces, const connectivit
 
 template<class I, class CK> auto
 append_generated_faces(faces_heterogenous_container<I>& faces, const heterogenous_connectivity_ref<const I,CK>& het_elt, I elt_id) {
-  std_e::switch_<all_homogenous_basic_2D_and_3D_elements>((ElementType_t)het_elt.type())
+  std_e::switch_<all_homogenous_basic_2D_and_3D_elements>((ElementType_t)het_elt.elt_t())
     .apply(
       LIFT(append_generated_faces_of_het_elt),
       faces,het_elt,elt_id

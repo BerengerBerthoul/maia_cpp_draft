@@ -20,12 +20,12 @@ echo -e "\033[31m" && date && echo -e "\e[0m" && \
 
 ## launch unit tests ##
 (cd build && \
-echo
-echo "std_e_unit_tests"
+echo && \
+echo "std_e_unit_tests" && \
 ./external/std_e/std_e_unit_tests && \
-echo
-echo "cpp_cgns_unit_tests"
+echo && \
+echo "cpp_cgns_unit_tests" && \
 ./external/cpp_cgns/cpp_cgns_unit_tests && \
-echo
-echo "maia_unit_tests"
+echo && \
+echo "maia_unit_tests" && \
 ./maia_unit_tests)

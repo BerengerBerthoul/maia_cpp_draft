@@ -1,5 +1,4 @@
-#include "doctest/doctest.h"
-#include "std_e/utils/doctest_utils.hpp"
+#include "std_e/unit_test/doctest.hpp"
 
 #include "maia/transform/partition_with_boundary_first/boundary_ngons_at_beginning.hpp"
 #include "cpp_cgns/node_manip.hpp"

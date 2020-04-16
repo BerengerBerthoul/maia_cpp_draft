@@ -1,4 +1,4 @@
-#include "doctest/doctest.h"
+#include "std_e/unit_test/doctest.hpp"
 
 #include "maia/connectivity/utility.hpp"
 #include "maia/connectivity_cgns/connectivity.hpp"
