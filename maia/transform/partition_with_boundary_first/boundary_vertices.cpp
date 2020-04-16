@@ -68,7 +68,7 @@ append_boundary_coordinates_indices(const tree& elts, std::vector<I4>& boundary_
 
 auto
 get_ordered_boundary_vertex_ids(const tree_range& elements_range) -> std::vector<I4> {
-  /* Precondition: */ for (const tree& elts : elements_range) { STD_E_ASSERT(elts.label=="Elements_t"); }
+  /* Precondition: */ for ([[maybe_unused]] const tree& elts : elements_range) { STD_E_ASSERT(elts.label=="Elements_t"); }
   // Post-condition: the boundary nodes are unique and sorted
 
   std::vector<I4> boundary_vertex_ids;

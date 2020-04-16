@@ -89,7 +89,7 @@ permute_boundary_vertices(node_value& coord, const std::vector<I4>& perm) -> voi
 
 auto
 update_vertex_ids_in_connectivities(tree_range& elt_pools, const std::vector<I4>& vertex_permutation) -> void {
-  /* Precondition */ for(tree& elt_pool : elt_pools) { STD_E_ASSERT(elt_pool.label=="Elements_t"); }
+  /* Precondition */ for([[maybe_unused]] tree& elt_pool : elt_pools) { STD_E_ASSERT(elt_pool.label=="Elements_t"); }
   for(tree& elt_pool : elt_pools) {
     re_number_vertex_ids_in_elements(elt_pool,vertex_permutation);
   };
