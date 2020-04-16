@@ -15,29 +15,29 @@ namespace cgns {
 // interleaved (fwd and random access) {
 template<class C> inline auto
 interleaved_ngon_range(C& c) {
-  return interleaved_connectivity_range<std::remove_reference_t<C>,ngon_kind>(c);
+  return interleaved_connectivity_range<C,ngon_kind>(c);
 }
 template<class C> inline auto
 interleaved_ngon_random_access_range(C& c) {
-  return interleaved_connectivity_random_access_range<std::remove_reference_t<C>,ngon_kind>(c);
+  return interleaved_connectivity_random_access_range<C,ngon_kind>(c);
 }
 
 template<class C> inline auto
 interleaved_nface_range(C& c) {
-  return interleaved_connectivity_range<std::remove_reference_t<C>,nface_kind>(c);
+  return interleaved_connectivity_range<C,nface_kind>(c);
 }
 template<class C> inline auto
 interleaved_nface_random_access_range(C& c) {
-  return interleaved_connectivity_random_access_range<std::remove_reference_t<C>,nface_kind>(c);
+  return interleaved_connectivity_random_access_range<C,nface_kind>(c);
 }
 
 template<class C> inline auto
 interleaved_mixed_range(C& c) {
-  return interleaved_connectivity_range<std::remove_reference_t<C>,mixed_kind>(c);
+  return interleaved_connectivity_range<C,mixed_kind>(c);
 }
 template<class C> inline auto
 interleaved_mixed_random_access_range(C& c) {
-  return interleaved_connectivity_random_access_range<std::remove_reference_t<C>,mixed_kind>(c);
+  return interleaved_connectivity_random_access_range<C,mixed_kind>(c);
 }
 // interleaved }
 
@@ -48,7 +48,7 @@ fwd_connectivity_range(C& c) {
        if constexpr (elt_type== NGON_n) { return  interleaved_ngon_range(c); }
   else if constexpr (elt_type==NFACE_n) { return interleaved_nface_range(c); }
   else if constexpr (elt_type== MIXED ) { return interleaved_mixed_range(c); }
-  else { return connectivity_range<std::remove_reference_t<C>,connectivity_kind<elt_type>>(c); }
+  else { return connectivity_range<C,connectivity_kind<elt_type>>(c); }
 }
 // universal fwd }
 
