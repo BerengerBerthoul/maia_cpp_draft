@@ -8,8 +8,8 @@ namespace cgns {
 
 
 template<ElementType_t ElementType, class I, class Connectivity_kind> auto
-cast_as(const interleaved_connectivity_view<I,Connectivity_kind>& interleaved_con) {
-  return connectivity_view<const I,connectivity_kind<ElementType>>(interleaved_con.begin());
+cast_as(const heterogenous_connectivity_ref<I,Connectivity_kind>& het_con) {
+  return connectivity_ref<const I,connectivity_kind<ElementType>>(het_con.begin());
 }
 
 

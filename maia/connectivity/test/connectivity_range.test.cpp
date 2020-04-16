@@ -5,8 +5,8 @@
 
 using namespace std;
 
-using con_view_type = connectivity_view<int,my_connectivity_kind>;
-using con_const_view_type = connectivity_view<const int,my_connectivity_kind>;
+using con_view_type = connectivity_ref<int,my_connectivity_kind>;
+using con_const_view_type = connectivity_ref<const int,my_connectivity_kind>;
 
 using con_it_type = connectivity_iterator<int,my_connectivity_kind>;
 using con_const_it_type = connectivity_iterator<const int,my_connectivity_kind>;

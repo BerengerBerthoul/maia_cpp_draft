@@ -11,7 +11,7 @@
 
 
 template<class I, class Connectivity_kind>
-class interleaved_connectivity_iterator {
+class heterogenous_connectivity_iterator { // TODO factor with interleaved_connectivity_random_access_iterator // TODO facto with std_e::index_iterator
   public:
   // type traits
     using index_type = std::remove_const_t<I>;
@@ -25,39 +25,43 @@ class interleaved_connectivity_iterator {
     using iterator_category = std::forward_iterator_tag;
 
   // ctor
-    interleaved_connectivity_iterator() = default;
+    heterogenous_connectivity_iterator() = default;
 
-    interleaved_connectivity_iterator(I* ptr)
+    heterogenous_connectivity_iterator(I* ptr)
       : ptr(ptr)
     {}
 
   // accessors
     // TODO factor with view
     auto size() const -> I {
-      return kind::nb_nodes(*type_ptr());
+      return kind::nb_nodes(type());
     }
 
+    template<class Integer> auto
+    operator+=(Integer i) -> this_type& { pos += i; return *this; }
+    template<class Integer> auto 
+    operator-=(Integer i) -> this_type& { pos -= i; return *this; }
+    auto operator++() -> this_type& { ++pos; return *this; }
+    auto operator--() -> this_type& { --pos; return *this; }
+
+    auto operator*() const -> connec_view_type { return {ptr}; } // TODO which ctor is it even calling???
+
     constexpr auto
-    operator++() -> interleaved_connectivity_iterator& {
-      ptr += memory_length();
-      return *this;
-    }
-    constexpr auto
-    operator++(int) -> interleaved_connectivity_iterator {
+    operator++(int) -> heterogenous_connectivity_iterator {
       throw std_e::not_implemented_exception("don't use postfix operator++");
     }
-
-    auto operator*() const -> connec_view_type { return {type_ptr(),begin_nodes()}; }
+    constexpr auto
+    operator++(int) -> heterogenous_connectivity_iterator {
+      throw std_e::not_implemented_exception("don't use postfix operator++");
+    }
     
     auto data() const -> I* { return ptr; }
   private:
-    auto type_ptr() const -> I* {
-      return ptr;
+    // TODO factor with view
+    auto type() const -> I {
+      return *ptr;
     }
-    auto begin_nodes() const -> I* {
-      return ptr+1;
-    }
-    // TODO DEL
+    // TODO factor with view
     auto memory_length() const -> I {
       return 1+size();
     }
@@ -65,11 +69,11 @@ class interleaved_connectivity_iterator {
 };
 
 template<class C0, class C1, class CK> constexpr auto
-operator==(const interleaved_connectivity_iterator<C0,CK>& x, const interleaved_connectivity_iterator<C1,CK>& y) -> bool {
+operator==(const heterogenous_connectivity_iterator<C0,CK>& x, const heterogenous_connectivity_iterator<C1,CK>& y) -> bool {
   return x.data() == y.data();
 }
 template<class C0, class C1, class CK> constexpr auto
-operator!=(const interleaved_connectivity_iterator<C0,CK>& x, const interleaved_connectivity_iterator<C1,CK>& y) -> bool {
+operator!=(const heterogenous_connectivity_iterator<C0,CK>& x, const heterogenous_connectivity_iterator<C1,CK>& y) -> bool {
   return !(x == y);
 }
 
@@ -78,22 +82,22 @@ template<class C, class Connectivity_kind>
 // requires C is a Contiguous_range
 // requires method C::data() returning ptr to first element
 // requires I=C::value_type is an integer type
-class interleaved_connectivity_range {
+class heterogenous_connectivity_range {
   public:
   // type traits
     using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using iterator = interleaved_connectivity_iterator<I,kind>;
-    using const_iterator = interleaved_connectivity_iterator<const I,kind>;
+    using iterator = heterogenous_connectivity_iterator<I,kind>;
+    using const_iterator = heterogenous_connectivity_iterator<const I,kind>;
     using reference = heterogenous_connectivity_ref<I,kind>;
     using const_reference = heterogenous_connectivity_ref<const I,kind>;
 
   // ctors
-    interleaved_connectivity_range() = default;
+    heterogenous_connectivity_range() = default;
 
-    interleaved_connectivity_range(C& cs)
+    heterogenous_connectivity_range(C& cs)
       : cs_ptr(&cs)
     {}
 
@@ -128,26 +132,26 @@ class interleaved_connectivity_range {
 };
 
 template<class CK, class C> constexpr auto
-make_interleaved_connectivity_range(C&& c) {
-  return interleaved_connectivity_range<std::remove_reference_t<C>,CK>(c);
+make_heterogenous_connectivity_range(C&& c) {
+  return heterogenous_connectivity_range<std::remove_reference_t<C>,CK>(c);
 }
 
 
 template<class I, class Connectivity_kind>
-class interleaved_connectivity_vertex_iterator {
+class heterogenous_connectivity_vertex_iterator {
   public:
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
-    using interleaved_connectivity_iterator_type = interleaved_connectivity_iterator<I,kind>;
+    using heterogenous_connectivity_iterator_type = heterogenous_connectivity_iterator<I,kind>;
     // TODO std::iterator type traits
 
-    interleaved_connectivity_vertex_iterator() = default;
-    interleaved_connectivity_vertex_iterator(interleaved_connectivity_iterator_type it)
+    heterogenous_connectivity_vertex_iterator() = default;
+    heterogenous_connectivity_vertex_iterator(heterogenous_connectivity_iterator_type it)
       : it(it)
       , pos(0)
     {}
 
-    auto operator++() -> interleaved_connectivity_vertex_iterator& {
+    auto operator++() -> heterogenous_connectivity_vertex_iterator& {
       ++pos;
       if (pos == it.size()) {
         ++it;
@@ -161,33 +165,33 @@ class interleaved_connectivity_vertex_iterator {
     }
 
     friend inline auto
-    operator==(const interleaved_connectivity_vertex_iterator& x, const interleaved_connectivity_vertex_iterator& y) -> bool {
+    operator==(const heterogenous_connectivity_vertex_iterator& x, const heterogenous_connectivity_vertex_iterator& y) -> bool {
       return x.it==y.it && x.pos==y.pos;
     }
     friend inline auto
-    operator!=(const interleaved_connectivity_vertex_iterator& x, const interleaved_connectivity_vertex_iterator& y) -> bool {
+    operator!=(const heterogenous_connectivity_vertex_iterator& x, const heterogenous_connectivity_vertex_iterator& y) -> bool {
       return !(x == y);
     }
   private:
-    interleaved_connectivity_iterator_type it;
+    heterogenous_connectivity_iterator_type it;
     int pos;
 };
 
 template<class C, class Connectivity_kind>
-class interleaved_connectivity_vertex_range {
+class heterogenous_connectivity_vertex_range {
   public:
   // type traits
     using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using iterator = interleaved_connectivity_vertex_iterator<I,kind>;
-    using const_iterator = interleaved_connectivity_vertex_iterator<const I,kind>;
+    using iterator = heterogenous_connectivity_vertex_iterator<I,kind>;
+    using const_iterator = heterogenous_connectivity_vertex_iterator<const I,kind>;
 
   // ctor
-    interleaved_connectivity_vertex_range() = default;
+    heterogenous_connectivity_vertex_range() = default;
 
-    interleaved_connectivity_vertex_range(C& cs)
+    heterogenous_connectivity_vertex_range(C& cs)
       : cs_ptr(&cs)
     {}
 
@@ -207,6 +211,6 @@ class interleaved_connectivity_vertex_range {
 };
 
 template<class CK, class C> constexpr auto
-make_interleaved_connectivity_vertex_range(C&& c) {
-  return interleaved_connectivity_vertex_range<std::remove_reference_t<C>,CK>(c);
+make_heterogenous_connectivity_vertex_range(C&& c) {
+  return heterogenous_connectivity_vertex_range<std::remove_reference_t<C>,CK>(c);
 }

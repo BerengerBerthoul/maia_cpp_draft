@@ -2,7 +2,7 @@
 
 
 #include <type_traits>
-#include "maia/connectivity/connectivity_view.hpp"
+#include "maia/connectivity/connectivity_ref.hpp"
 #include "std_e/utils/meta.hpp"
 
 
@@ -24,7 +24,7 @@ class connectivity_iterator {
     }
 
     auto operator*() const {
-      return connectivity_view<I,kind>(ptr);
+      return connectivity_ref<I,kind>(ptr);
     }
 
     auto data() const -> I* {
@@ -57,8 +57,8 @@ class connectivity_range {
 
     using iterator_type = connectivity_iterator<I,kind>;
     using const_iterator_type = connectivity_iterator<const I,kind>;
-    using reference_type = connectivity_view<I,kind>;
-    using const_reference_type = connectivity_view<const I,kind>;
+    using reference_type = connectivity_ref<I,kind>;
+    using const_reference_type = connectivity_ref<const I,kind>;
 
     connectivity_range() = default;
     connectivity_range(C& cs)

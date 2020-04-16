@@ -1,17 +1,12 @@
 ## Global config ##
 cmake_minimum_required(VERSION 3.12)
 
-find_package(Git 2.14 REQUIRED)
-
-execute_process(COMMAND git rev-parse --show-superproject-working-tree
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  OUTPUT_VARIABLE git_root_dir_with_space
-)
-string(STRIP "${git_root_dir_with_space}" git_root_dir)
-if("${git_root_dir}" STREQUAL "")
-  set(git_root_dir ".")
+if(DEFINED ENV{PROJECT_ROOT})
+  set(PROJECT_ROOT $ENV{PROJECT_ROOT})
+else()
+  set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
 endif()
-include(${git_root_dir}/external/project_utils/scripts/cmake/target_add_dependency.cmake)
+include(${PROJECT_ROOT}/external/project_utils/scripts/cmake/target_add_dependency.cmake)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
@@ -112,7 +107,7 @@ install(DIRECTORY ${src_dir} DESTINATION include FILES_MATCHING PATTERN "*.hpp")
 set(TARGET_NAME ${PROJECT_NAME})
 string(REPLACE ";" " " TARGET_DEPENDENCIES_FIND_PACKAGE_STRING "${${PROJECT_NAME}_DEPENDENCIES_FIND_PACKAGE_STRING}")
 configure_file(
-  ${git_root_dir}/external/project_utils/scripts/cmake/target_config.cmake.in
+  ${PROJECT_ROOT}/external/project_utils/scripts/cmake/target_config.cmake.in
   ${PROJECT_NAME}Config.cmake
   @ONLY
 )
