@@ -11,61 +11,45 @@
 
 
 template<class I, class Connectivity_kind>
-class heterogenous_connectivity_iterator { // TODO factor with interleaved_connectivity_random_access_iterator // TODO facto with std_e::index_iterator
+class heterogenous_connectivity_iterator { // TODO factor with std_e/iterator/index_iterator
   public:
   // type traits
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using connec_view_type = heterogenous_connectivity_ref<I,kind>;
+    using connec_view_type = heterogenous_connectivity_ref<I,kind>; // TODO heterogenous_connectivity_view
+    using connec_ref_type = heterogenous_connectivity_ref<I,kind>;
        
     /// std::iterator type traits
     using value_type = connec_view_type;
+    using reference = connec_ref_type;
     using difference_type = I;
     using iterator_category = std::forward_iterator_tag;
 
   // ctor
     heterogenous_connectivity_iterator() = default;
 
-    heterogenous_connectivity_iterator(I* ptr)
-      : ptr(ptr)
+    heterogenous_connectivity_iterator(I* offset_ptr, I* con_ptr)
+      : offset_ptr(offset_ptr)
+      , con_ptr(con_ptr)
     {}
 
-  // accessors
-    // TODO factor with view
-    auto size() const -> I {
-      return kind::nb_nodes(type());
-    }
-
-    template<class Integer> auto
-    operator+=(Integer i) -> this_type& { pos += i; return *this; }
-    template<class Integer> auto 
-    operator-=(Integer i) -> this_type& { pos -= i; return *this; }
-    auto operator++() -> this_type& { ++pos; return *this; }
-    auto operator--() -> this_type& { --pos; return *this; }
-
-    auto operator*() const -> connec_view_type { return {ptr}; } // TODO which ctor is it even calling???
-
+  // iterator interface
     constexpr auto
-    operator++(int) -> heterogenous_connectivity_iterator {
-      throw std_e::not_implemented_exception("don't use postfix operator++");
+    operator++() -> heterogenous_connectivity_iterator& {
+      ++offset_ptr;
+      return *this;
     }
     constexpr auto
     operator++(int) -> heterogenous_connectivity_iterator {
       throw std_e::not_implemented_exception("don't use postfix operator++");
     }
+
+    auto operator*() const -> reference { return {offset_ptr,con_ptr+offset_ptr}; }
     
-    auto data() const -> I* { return ptr; }
   private:
-    // TODO factor with view
-    auto type() const -> I {
-      return *ptr;
-    }
-    // TODO factor with view
-    auto memory_length() const -> I {
-      return 1+size();
-    }
-    I* ptr;
+    I* offset_ptr;
+    I* con_ptr;
 };
 
 template<class C0, class C1, class CK> constexpr auto
@@ -92,7 +76,6 @@ class heterogenous_connectivity_range {
     using iterator = heterogenous_connectivity_iterator<I,kind>;
     using const_iterator = heterogenous_connectivity_iterator<const I,kind>;
     using reference = heterogenous_connectivity_ref<I,kind>;
-    using const_reference = heterogenous_connectivity_ref<const I,kind>;
 
   // ctors
     heterogenous_connectivity_range() = default;
@@ -111,7 +94,7 @@ class heterogenous_connectivity_range {
     auto end()         ->       iterator { return {data()+memory_length()}; }
     auto end()   const -> const_iterator { return {data()+memory_length()}; }
 
-    auto push_back(const_reference c) -> void {
+    auto push_back(const reference c) -> void {
       // requires C is a Container
       auto old_size = memory_length();
       cs_ptr->resize( old_size + c.memory_length() );

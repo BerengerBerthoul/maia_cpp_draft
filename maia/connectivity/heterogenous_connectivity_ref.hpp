@@ -10,11 +10,11 @@ class heterogenous_connectivity_ref {
   // traits
     using kind = Connectivity_kind;
     using index_type = std::remove_const_t<I>;
+    using type_reference = typename kind::template type_reference<I>;
 
   // ctors
-
-    heterogenous_connectivity_ref(I* type_ptr, I* nodes_ptr)
-      : type_ptr(type_ptr)
+    heterogenous_connectivity_ref(type_reference type_ref, I* nodes_ptr)
+      : type_ref(type_ref)
       , nodes_ptr(nodes_ptr)
     {}
 
@@ -25,19 +25,19 @@ class heterogenous_connectivity_ref {
 
     heterogenous_connectivity_ref& operator=(const heterogenous_connectivity_ref& other) {
       std::copy(other.nodes_ptr, other.nodes_ptr+other.size(), nodes_ptr);
-      *type_ptr = *other.type_ptr;
+      type_ref = other.type_ref;
       return *this;
     }
     heterogenous_connectivity_ref& operator=(heterogenous_connectivity_ref&& other) {
       std::copy(other.nodes_ptr, other.nodes_ptr+other.size(), nodes_ptr);
-      *type_ptr = *other.type_ptr;
+      type_ref = other.type_ref;
       return *this;
     }
 
   // heterogenous accessors
     constexpr auto
     type() const -> I {
-      return *type_ptr;
+      return type_ref;
     }
     constexpr auto
     nb_nodes() const -> I {
@@ -55,7 +55,7 @@ class heterogenous_connectivity_ref {
     template<class I0> constexpr auto operator[](I0 i)       ->       I& { return nodes_ptr[i]; }
     template<class I0> constexpr auto operator[](I0 i) const -> const I& { return nodes_ptr[i]; }
   private:
-    I* type_ptr;
+    type_reference type_ref;
     I* nodes_ptr;
 };
 template<class I0, class I1, class CK> inline auto

@@ -111,12 +111,12 @@ class interleaved_connectivity_random_access_range {
     using kind = Connectivity_kind;
 
     using fwd_accessor_type = interleaved_connectivity_range<C,kind>;
+    using value_type = typename fwd_accessor_type::value_type;
+    using reference = typename fwd_accessor_type::reference;
 
     // TODO std::iterator traits
     using iterator = interleaved_connectivity_random_access_iterator<I,kind>;
     using const_iterator = interleaved_connectivity_random_access_iterator<const I,kind>;
-    using connec_view_type = heterogenous_connectivity_ref<I,kind>;
-    using connec_const_view_type = heterogenous_connectivity_ref<const I,kind>;
 
     interleaved_connectivity_random_access_range() = default;
     interleaved_connectivity_random_access_range(C& cs)
@@ -137,21 +137,21 @@ class interleaved_connectivity_random_access_range {
     auto end()   const -> const_iterator { return {data() + memory_length(),idx_table.end()  ,0}; }
 
     template<class Integer>
-    auto operator[](Integer i) -> connec_view_type {
+    auto operator[](Integer i) -> reference {
       auto pos = data() + idx_table[i];
-      auto con_type_ptr = pos;
+      auto& con_type_ref = *pos;
       auto con_start = pos+1;
-      return connec_view_type{con_type_ptr,con_start};
+      return {con_type_ref,con_start};
     }
     template<class Integer>
-    auto operator[](Integer i) const -> connec_const_view_type {
+    auto operator[](Integer i) const -> const reference {
       auto pos = data() + idx_table[i];
-      auto con_type_ptr = pos;
+      auto& con_type_ref = *pos;
       auto con_start = pos+1;
-      return connec_view_type{con_type_ptr,con_start};
+      return {con_type_ref,con_start};
     }
 
-    auto push_back(connec_view_type c) -> void {
+    auto push_back(const reference c) -> void {
       fwd_accessor.push_back(c);
       idx_table.push_back(idx_table.back() + c.memory_length);
     }

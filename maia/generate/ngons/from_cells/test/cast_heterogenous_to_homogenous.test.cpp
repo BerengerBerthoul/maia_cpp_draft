@@ -6,7 +6,7 @@ TEST_CASE("cast_heterogenous_to_homogenous") {
   int quad_4_type_id = cgns::QUAD_4;
   std::vector<int> quad_data = {3,9,12,1};
 
-  heterogenous_connectivity_ref<int,cgns::mixed_kind> quad_viewed_as_mixed(&quad_4_type_id,quad_data.data());
+  heterogenous_connectivity_ref<int,cgns::mixed_kind> quad_viewed_as_mixed(quad_4_type_id,quad_data.data());
 
   auto quad = cgns::cast_as<cgns::QUAD_4>(quad_viewed_as_mixed);
 

@@ -17,10 +17,12 @@ class interleaved_connectivity_iterator {
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using connec_view_type = heterogenous_connectivity_ref<I,kind>;
+    using connec_view_type = heterogenous_connectivity_ref<I,kind>; // TODO heterogenous_connectivity_view
+    using connec_ref_type = heterogenous_connectivity_ref<I,kind>;
        
     /// std::iterator type traits
     using value_type = connec_view_type;
+    using reference = connec_ref_type;
     using difference_type = I;
     using iterator_category = std::forward_iterator_tag;
 
@@ -31,12 +33,10 @@ class interleaved_connectivity_iterator {
       : ptr(ptr)
     {}
 
-  // accessors
-    // TODO factor with view
-    auto size() const -> I {
-      return kind::nb_nodes(*type_ptr());
+  // iterator interface
+    auto nb_nodes() const -> I {
+      return kind::nb_nodes(type_ref());
     }
-
     constexpr auto
     operator++() -> interleaved_connectivity_iterator& {
       ptr += memory_length();
@@ -47,19 +47,18 @@ class interleaved_connectivity_iterator {
       throw std_e::not_implemented_exception("don't use postfix operator++");
     }
 
-    auto operator*() const -> connec_view_type { return {type_ptr(),begin_nodes()}; }
+    auto operator*() const -> reference { return {type_ref(),begin_nodes()}; }
     
     auto data() const -> I* { return ptr; }
   private:
-    auto type_ptr() const -> I* {
-      return ptr;
+    auto type_ref() const -> I& {
+      return *ptr;
     }
     auto begin_nodes() const -> I* {
       return ptr+1;
     }
-    // TODO DEL
     auto memory_length() const -> I {
-      return 1+size();
+      return 1+nb_nodes();
     }
     I* ptr;
 };
@@ -87,8 +86,9 @@ class interleaved_connectivity_range {
 
     using iterator = interleaved_connectivity_iterator<I,kind>;
     using const_iterator = interleaved_connectivity_iterator<const I,kind>;
-    using reference = heterogenous_connectivity_ref<I,kind>;
-    using const_reference = heterogenous_connectivity_ref<const I,kind>;
+
+    using value_type = typename iterator::value_type;
+    using reference = typename iterator::reference;
 
   // ctors
     interleaved_connectivity_range() = default;
@@ -107,7 +107,7 @@ class interleaved_connectivity_range {
     auto end()         ->       iterator { return {data()+memory_length()}; }
     auto end()   const -> const_iterator { return {data()+memory_length()}; }
 
-    auto push_back(const_reference c) -> void {
+    auto push_back(const reference c) -> void {
       // requires C is a Container
       auto old_size = memory_length();
       cs_ptr->resize( old_size + c.memory_length() );
@@ -149,7 +149,7 @@ class interleaved_connectivity_vertex_iterator {
 
     auto operator++() -> interleaved_connectivity_vertex_iterator& {
       ++pos;
-      if (pos == it.size()) {
+      if (pos == it.nb_nodes()) {
         ++it;
         pos=0;
       }

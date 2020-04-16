@@ -18,14 +18,23 @@ struct connectivity_kind {
 struct ngon_kind {
   static constexpr int type = NGON_n;
   static constexpr int nb_nodes(int n) { return n; }
+  template<class I> using type_reference = I&;
 };
 struct nface_kind {
   static constexpr int type = NFACE_n;
   static constexpr int nb_nodes(int n) { return n; }
+  template<class I> using type_reference = I&;
 };
 struct mixed_kind {
   static constexpr int type = MIXED;
   static constexpr int nb_nodes(int n) { return cgns::number_of_nodes2(n); }
+  template<class I> using type_reference = I&;
+};
+
+struct interleaved_ngon_kind {
+  static constexpr int type = NGON_n;
+  static constexpr int nb_nodes(int n) { return n; }
+  template<class I> using type_reference = I&;
 };
 
 

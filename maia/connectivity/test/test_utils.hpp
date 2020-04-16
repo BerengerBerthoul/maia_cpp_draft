@@ -13,4 +13,5 @@ struct my_ngon_connectivity_kind {
   static auto nb_nodes(int type) {
     return type;
   }
+  template<class I> using type_reference = I&;
 };
