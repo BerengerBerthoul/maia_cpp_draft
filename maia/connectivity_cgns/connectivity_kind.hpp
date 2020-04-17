@@ -24,9 +24,9 @@ struct mixed_kind {
 };
 
 template<connectivity_category cat> struct connectivity_kind_of__impl;
-template<> struct connectivity_kind_of__impl<            ngon > { using type = maia::heterogenous_polygon_kind; };
+template<> struct connectivity_kind_of__impl<            ngon > { using type = maia::indexed_polygon_kind; };
 template<> struct connectivity_kind_of__impl<interleaved_ngon > { using type = maia::interleaved_polygon_kind; };
-template<> struct connectivity_kind_of__impl<            nface> { using type = maia::heterogenous_polyhedron_kind; };
+template<> struct connectivity_kind_of__impl<            nface> { using type = maia::indexed_polyhedron_kind; };
 template<> struct connectivity_kind_of__impl<interleaved_nface> { using type = maia::interleaved_polyhedron_kind; };
 template<> struct connectivity_kind_of__impl<            mixed> { using type = mixed_kind; };
 template<> struct connectivity_kind_of__impl<interleaved_mixed> { using type = mixed_kind; };

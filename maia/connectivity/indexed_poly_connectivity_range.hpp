@@ -13,7 +13,7 @@ namespace maia {
 
 
 template<class I, class Connectivity_kind>
-class heterogenous_connectivity_iterator { // TODO factor with std_e/iterator/index_iterator
+class indexed_poly_connectivity_iterator { // TODO factor with std_e/iterator/index_iterator
   public:
   // type traits
     using index_type = std::remove_const_t<I>;
@@ -29,46 +29,46 @@ class heterogenous_connectivity_iterator { // TODO factor with std_e/iterator/in
     using iterator_category = std::forward_iterator_tag; // TODO random
 
   // ctor
-    heterogenous_connectivity_iterator() = default;
+    indexed_poly_connectivity_iterator() = default;
 
-    heterogenous_connectivity_iterator(I* offsets_ptr, I* cs_ptr)
+    indexed_poly_connectivity_iterator(I* offsets_ptr, I* cs_ptr)
       : offsets_ptr(offsets_ptr)
       , cs_ptr(cs_ptr)
     {}
 
   // iterator interface
     constexpr auto
-    operator++() -> heterogenous_connectivity_iterator& {
+    operator++() -> indexed_poly_connectivity_iterator& {
       ++offsets_ptr;
       return *this;
     }
     constexpr auto
-    operator++(int) -> heterogenous_connectivity_iterator {
+    operator++(int) -> indexed_poly_connectivity_iterator {
       throw std_e::not_implemented_exception("don't use postfix operator++");
     }
 
     auto operator*() const -> reference { return {poly_elt_t_reference{offsets_ptr},cs_ptr+(*offsets_ptr)}; }
     
     template<class C0, class C1, class CK> friend constexpr auto
-    operator==(const heterogenous_connectivity_iterator<C0,CK>& x, const heterogenous_connectivity_iterator<C1,CK>& y) -> bool;
+    operator==(const indexed_poly_connectivity_iterator<C0,CK>& x, const indexed_poly_connectivity_iterator<C1,CK>& y) -> bool;
   private:
     I* offsets_ptr;
     I* cs_ptr;
 };
 
 template<class C0, class C1, class CK> constexpr auto
-operator==(const heterogenous_connectivity_iterator<C0,CK>& x, const heterogenous_connectivity_iterator<C1,CK>& y) -> bool {
+operator==(const indexed_poly_connectivity_iterator<C0,CK>& x, const indexed_poly_connectivity_iterator<C1,CK>& y) -> bool {
   return x.offsets_ptr==y.offsets_ptr;
 }
 template<class C0, class C1, class CK> constexpr auto
-operator!=(const heterogenous_connectivity_iterator<C0,CK>& x, const heterogenous_connectivity_iterator<C1,CK>& y) -> bool {
+operator!=(const indexed_poly_connectivity_iterator<C0,CK>& x, const indexed_poly_connectivity_iterator<C1,CK>& y) -> bool {
   return !(x == y);
 }
 
 } // maia
 template<class I, class CK>
-struct std::iterator_traits<maia::heterogenous_connectivity_iterator<I,CK>> {
-  using type = maia::heterogenous_connectivity_iterator<I,CK>;
+struct std::iterator_traits<maia::indexed_poly_connectivity_iterator<I,CK>> {
+  using type = maia::indexed_poly_connectivity_iterator<I,CK>;
   using value_type = typename type::value_type;
   using reference = typename type::reference;
   using difference_type = typename type::difference_type;
@@ -81,21 +81,21 @@ template<class C, class Connectivity_kind>
 // requires C is a Contiguous_range
 // requires method C::data() returning ptr to first element
 // requires I=C::value_type is an integer type
-class heterogenous_connectivity_range {
+class indexed_poly_connectivity_range {
   public:
   // type traits
     using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using iterator = heterogenous_connectivity_iterator<I,kind>;
-    using const_iterator = heterogenous_connectivity_iterator<const I,kind>;
+    using iterator = indexed_poly_connectivity_iterator<I,kind>;
+    using const_iterator = indexed_poly_connectivity_iterator<const I,kind>;
     using reference = heterogenous_connectivity_ref<I,kind>;
 
   // ctors
-    heterogenous_connectivity_range() = default;
+    indexed_poly_connectivity_range() = default;
 
-    heterogenous_connectivity_range(C& offsets, C& cs)
+    indexed_poly_connectivity_range(C& offsets, C& cs)
       : offsets_ptr(&offsets)
       , cs_ptr(&cs)
     {}
@@ -148,8 +148,8 @@ class heterogenous_connectivity_range {
 };
 
 template<class CK, class C> constexpr auto
-make_heterogenous_connectivity_range(C& offsets, C& cs) {
-  return heterogenous_connectivity_range<C,CK>(offsets,cs);
+make_indexed_poly_connectivity_range(C& offsets, C& cs) {
+  return indexed_poly_connectivity_range<C,CK>(offsets,cs);
 }
 
 
