@@ -2,13 +2,15 @@
 
 #include "maia/connectivity/interleaved_connectivity_range.hpp"
 #include "maia/connectivity/interleaved_connectivity_random_access_range.hpp"
-#include "maia/connectivity/test/test_utils.hpp"
+#include "maia/connectivity/poly_elt_t_kind.hpp"
+
+using namespace maia;
 
 TEST_CASE("interleaved ngon connectivity") {
   const std::vector<int> cs = {3, 100,101,102,    4, 142,143,144,145,    2, 44,45};
 
   SUBCASE("vertices") {
-    auto vtx_range = make_interleaved_connectivity_vertex_range<my_ngon_connectivity_kind>(cs);
+    auto vtx_range = make_interleaved_connectivity_vertex_range<interleaved_polygon_kind>(cs);
 
     std::vector<int> vertices;
     for (auto vertex: vtx_range) {
@@ -21,7 +23,7 @@ TEST_CASE("interleaved ngon connectivity") {
 
 
   SUBCASE("index_table") {
-    auto cs_fwd_range = make_interleaved_connectivity_range<my_ngon_connectivity_kind>(cs);
+    auto cs_fwd_range = make_interleaved_connectivity_range<interleaved_polygon_kind>(cs);
 
     auto idx_table = index_table(cs_fwd_range);
 
@@ -33,9 +35,9 @@ TEST_CASE("interleaved ngon connectivity") {
 
 
   SUBCASE("random_iterator") {
-    using random_it = interleaved_connectivity_random_access_iterator<const int,my_ngon_connectivity_kind>;
+    using random_it = interleaved_connectivity_random_access_iterator<const int,interleaved_polygon_kind>;
 
-    auto cs_fwd_range = make_interleaved_connectivity_range<my_ngon_connectivity_kind>(cs);
+    auto cs_fwd_range = make_interleaved_connectivity_range<interleaved_polygon_kind>(cs);
     auto idx_table = index_table(cs_fwd_range);
 
     int first_pos = 0;
@@ -68,7 +70,7 @@ TEST_CASE("interleaved ngon connectivity") {
   }
 
   SUBCASE("random_access_range") {
-    auto random_access_range = make_interleaved_connectivity_random_access_range<my_ngon_connectivity_kind>(cs);
+    auto random_access_range = make_interleaved_connectivity_random_access_range<interleaved_polygon_kind>(cs);
 
     REQUIRE( random_access_range.size() == 3 );
 

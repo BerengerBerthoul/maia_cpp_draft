@@ -1,12 +1,13 @@
 #include "std_e/unit_test/doctest.hpp"
 
 #include "maia/connectivity/heterogenous_connectivity_ref.hpp"
-#include "maia/connectivity/test/test_utils.hpp"
+#include "maia/connectivity/poly_elt_t_kind.hpp"
 
 using namespace std;
+using namespace maia;
 
-using con_ref_type = heterogenous_connectivity_ref<int,my_ngon_connectivity_kind>;
-using con_const_ref_type = heterogenous_connectivity_ref<const int,my_ngon_connectivity_kind>;
+using con_ref_type = heterogenous_connectivity_ref<int,interleaved_polygon_kind>;
+using con_const_ref_type = heterogenous_connectivity_ref<const int,interleaved_polygon_kind>;
 
 TEST_CASE("connectivity_ref") {
   int connectivity_elt_t = 3;

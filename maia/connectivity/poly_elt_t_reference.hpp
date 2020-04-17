@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace cgns {
+namespace maia {
 
 
 template<class I>
@@ -28,7 +28,6 @@ class poly_elt_t_reference {
       return *this;
     }
     // operator= overloads for const types {
-    template<class I0> friend class poly_elt_t_reference;
     template<class I0> auto
     // requires I0 is I or const I
     operator=(const poly_elt_t_reference<const I0>& other) -> decltype(auto) {
@@ -51,15 +50,15 @@ class poly_elt_t_reference {
     operator I() const {
       return elt_t_nb_of_nodes();
     }
-  private:
     constexpr auto
     elt_t_nb_of_nodes() const -> I { // TODO RENAME (not nodes for NFace)
       I& this_elt_t_offset = *offsets;
       I& next_elt_t_offset = *(offsets+1);
       return next_elt_t_offset - this_elt_t_offset;
     }
+  private:
     I* offsets;
 };
 
 
-} // cgns
+} // maia

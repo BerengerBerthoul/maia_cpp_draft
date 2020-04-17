@@ -10,7 +10,7 @@ TEST_CASE("shift_vertices_ids") {
     { 0, 2, 4, 6}
   };
 
-  offset_vertices_ids(cs,1);
+  maia::offset_vertices_ids(cs,1);
 
   std::vector<cgns::quad_4<int>> expected_cs = {
     {43,44,45,46},

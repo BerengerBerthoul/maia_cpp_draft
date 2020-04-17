@@ -86,3 +86,13 @@ template<class I0, class I1, class CK> inline auto
 operator!=(const heterogenous_connectivity_ref<I0,CK>& x, const heterogenous_connectivity_ref<I1,CK>& y) {
   return !(x == y);
 }
+template<class I, class CK> constexpr auto begin(const heterogenous_connectivity_ref<I,CK>& x) { return x.begin(); }
+template<class I, class CK> constexpr auto begin(      heterogenous_connectivity_ref<I,CK>& x) { return x.begin(); }
+template<class I, class CK> constexpr auto end  (const heterogenous_connectivity_ref<I,CK>& x) { return x.end(); }
+template<class I, class CK> constexpr auto end  (      heterogenous_connectivity_ref<I,CK>& x) { return x.end(); }
+
+template<class I, class CK> inline auto
+to_string(const heterogenous_connectivity_ref<I,CK>& x) {
+  return std_e::range_to_string(x);
+}
+

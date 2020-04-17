@@ -15,20 +15,20 @@ namespace cgns {
 // interleaved (fwd and random access) {
 template<class C> inline auto
 interleaved_ngon_range(C& c) {
-  return interleaved_connectivity_range<C,interleaved_ngon_kind>(c);
+  return interleaved_connectivity_range<C,maia::interleaved_polygon_kind>(c);
 }
 template<class C> inline auto
 interleaved_ngon_random_access_range(C& c) {
-  return interleaved_connectivity_random_access_range<C,interleaved_ngon_kind>(c);
+  return interleaved_connectivity_random_access_range<C,maia::interleaved_polygon_kind>(c);
 }
 
 template<class C> inline auto
 interleaved_nface_range(C& c) {
-  return interleaved_connectivity_range<C,interleaved_nface_kind>(c);
+  return interleaved_connectivity_range<C,maia::interleaved_polyhedron_kind>(c);
 }
 template<class C> inline auto
 interleaved_nface_random_access_range(C& c) {
-  return interleaved_connectivity_random_access_range<C,interleaved_nface_kind>(c);
+  return interleaved_connectivity_random_access_range<C,maia::interleaved_polyhedron_kind>(c);
 }
 
 template<class C> inline auto
