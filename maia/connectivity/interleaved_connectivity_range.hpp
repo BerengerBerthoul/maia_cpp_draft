@@ -128,7 +128,7 @@ class interleaved_connectivity_range {
 };
 
 template<class CK, class C> constexpr auto
-make_interleaved_connectivity_range(C&& c) {
+make_interleaved_connectivity_range(C& c) {
   return interleaved_connectivity_range<std::remove_reference_t<C>,CK>(c);
 }
 
@@ -207,6 +207,6 @@ class interleaved_connectivity_vertex_range {
 };
 
 template<class CK, class C> constexpr auto
-make_interleaved_connectivity_vertex_range(C&& c) {
+make_interleaved_connectivity_vertex_range(C& c) {
   return interleaved_connectivity_vertex_range<std::remove_reference_t<C>,CK>(c);
 }

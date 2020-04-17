@@ -8,7 +8,6 @@
 #include "maia/connectivity/interleaved_connectivity_random_access_range.hpp"
 #include "std_e/base/not_implemented_exception.hpp"
 #include "cpp_cgns/sids/connectivity_category.hpp"
-#include "std_e/base/not_implemented_exception.hpp"
 
 
 namespace cgns {
@@ -46,12 +45,12 @@ interleaved_mixed_random_access_range(C& cs) {
 
 // indexed
 template<class C> inline auto
-ngon_range(C& offsets, C& cs) {
+polygon_range(C& offsets, C& cs) {
   return maia::indexed_poly_connectivity_range<C,maia::indexed_polygon_kind>(offsets,cs);
 }
 
 template<class C> inline auto
-nface_range(C& offsets, C& cs) {
+polyhedron_range(C& offsets, C& cs) {
   return maia::indexed_poly_connectivity_range<C,maia::indexed_polyhedron_kind>(offsets,cs);
 }
 

@@ -93,6 +93,6 @@ class connectivity_range {
 };
 
 template<class CK, class C> constexpr auto
-make_connectivity_range(C&& c) {
+make_connectivity_range(C& c) {
   return connectivity_range<std::remove_reference_t<C>,CK>(c);
 }

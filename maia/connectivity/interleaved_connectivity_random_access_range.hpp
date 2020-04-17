@@ -164,6 +164,6 @@ class interleaved_connectivity_random_access_range {
 };
 
 template<class CK, class C> constexpr auto
-make_interleaved_connectivity_random_access_range(C&& c) {
+make_interleaved_connectivity_random_access_range(C& c) {
   return interleaved_connectivity_random_access_range<std::remove_reference_t<C>,CK>(c);
 }
