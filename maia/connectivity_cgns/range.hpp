@@ -44,21 +44,21 @@ interleaved_mixed_random_access_range(C& cs) {
 
 
 // indexed
-template<class C> inline auto
-polygon_range(C& offsets, C& cs) {
-  return maia::indexed_poly_connectivity_range<C,maia::indexed_polygon_kind>(offsets,cs);
+template<class C0, class C1> inline auto
+polygon_range(C0& offsets, C1& cs) {
+  return maia::indexed_poly_connectivity_range<C0,C1,maia::indexed_polygon_kind>(offsets,cs);
 }
 
-template<class C> inline auto
-polyhedron_range(C& offsets, C& cs) {
-  return maia::indexed_poly_connectivity_range<C,maia::indexed_polyhedron_kind>(offsets,cs);
+template<class C0, class C1> inline auto
+polyhedron_range(C0& offsets, C1& cs) {
+  return maia::indexed_poly_connectivity_range<C0,C1,maia::indexed_polyhedron_kind>(offsets,cs);
 }
 
-template<class C> inline auto
-mixed_range(C& offsets, C& cs) {
+template<class C0, class C1> inline auto
+mixed_range(C0& offsets, C1& cs) {
   throw std_e::not_implemented_exception("indexed mixed_range");
-  // TODO: something like this:
-  //return interleaved_connectivity_random_access_range<C,mixed_kind>(offsets,cs);
+  // TODO: something like this (not immediate because now interleaved_connectivity_random_access_range index array is self-hosted): 
+  //return interleaved_connectivity_random_access_range<C0,C1,mixed_kind>(offsets,cs);
 }
 // indexed }
 

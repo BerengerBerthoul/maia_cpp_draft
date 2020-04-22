@@ -6,8 +6,8 @@
 using namespace std;
 using namespace maia;
 
-using con_ref_type = heterogenous_connectivity_ref<int,interleaved_polygon_kind>;
-using con_const_ref_type = heterogenous_connectivity_ref<const int,interleaved_polygon_kind>;
+using con_ref_type = heterogenous_connectivity_ref<int,int,interleaved_polygon_kind>;
+using con_const_ref_type = heterogenous_connectivity_ref<const int,const int,interleaved_polygon_kind>;
 
 TEST_CASE("connectivity_ref") {
   int connectivity_elt_t = 3;

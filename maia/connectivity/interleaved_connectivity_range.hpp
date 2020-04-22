@@ -17,8 +17,8 @@ class interleaved_connectivity_iterator {
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using connec_view_type = heterogenous_connectivity_ref<I,kind>; // TODO heterogenous_connectivity_view
-    using connec_ref_type = heterogenous_connectivity_ref<I,kind>;
+    using connec_view_type = heterogenous_connectivity_ref<I,I,kind>; // TODO heterogenous_connectivity_view
+    using connec_ref_type = heterogenous_connectivity_ref<I,I,kind>;
        
     /// std::iterator type traits
     using value_type = connec_view_type;

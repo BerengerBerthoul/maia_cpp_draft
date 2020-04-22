@@ -7,8 +7,8 @@
 using namespace maia;
 
 TEST_CASE("example use of poly_elt_t_reference and heterogenous_connectivity_ref: indexed_poly connectivity range copy") {
-  using CC_ref = heterogenous_connectivity_ref<const int,indexed_polygon_kind>;
-  using C_ref = heterogenous_connectivity_ref<int,indexed_polygon_kind>;
+  using CC_ref = heterogenous_connectivity_ref<const int,const int,indexed_polygon_kind>;
+  using C_ref = heterogenous_connectivity_ref<int,int,indexed_polygon_kind>;
 
 // input
   // creation
