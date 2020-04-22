@@ -86,6 +86,13 @@ template<class I0, class I1, class CK> inline auto
 operator!=(const heterogenous_connectivity_ref<I0,CK>& x, const heterogenous_connectivity_ref<I1,CK>& y) {
   return !(x == y);
 }
+
+template<class I0, class I1, class CK> inline auto
+operator< (const heterogenous_connectivity_ref<I0,CK>& x, const heterogenous_connectivity_ref<I1,CK>& y) {
+  return
+       x.elt_t()< y.elt_t()
+   || (x.elt_t()==y.elt_t() && std::lexicographical_compare(x.begin(),x.end(),y.begin(),y.end()));
+}
 template<class I, class CK> constexpr auto begin(const heterogenous_connectivity_ref<I,CK>& x) { return x.begin(); }
 template<class I, class CK> constexpr auto begin(      heterogenous_connectivity_ref<I,CK>& x) { return x.begin(); }
 template<class I, class CK> constexpr auto end  (const heterogenous_connectivity_ref<I,CK>& x) { return x.end(); }

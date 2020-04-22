@@ -28,14 +28,22 @@ TEST_CASE("connectivity_ref") {
     vector<int> same_vertices = {1,2,3};
     con_const_ref_type same(same_connectivity_elt_t,same_vertices.data());
     CHECK( con_ref_type == same );
+    CHECK_FALSE( con_ref_type < same );
 
     int different_connectivity_elt_t = 2;
     con_const_ref_type different_type(different_connectivity_elt_t,same_vertices.data());
     CHECK( con_ref_type != different_type );
+    CHECK( different_type < con_ref_type );
 
     vector<int> different_vertices = {2,3,1};
     con_const_ref_type different(same_connectivity_elt_t,different_vertices.data());
     CHECK( con_ref_type != different );
+    CHECK( con_ref_type < different );
+
+    vector<int> inferior_vertices = {1,2,0};
+    con_const_ref_type inferior(same_connectivity_elt_t,inferior_vertices.data());
+    CHECK( con_ref_type != inferior );
+    CHECK( inferior < con_ref_type );
   }
 
 
