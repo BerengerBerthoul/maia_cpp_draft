@@ -8,8 +8,8 @@
 using namespace maia;
 
 TEST_CASE("indexed_poly ngon connectivity") {
-  const std::vector<int> polygon_offsets = {0          , 3              , 7       , 10};
-  const std::vector<int> polygon_cs      = {100,101,102, 142,143,144,145, 44,45,46};
+  std::vector<int> polygon_offsets = {0          , 3              , 7       , 10};
+  std::vector<int> polygon_cs      = {100,101,102, 142,143,144,145, 44,45,46};
   auto connec_range = make_indexed_poly_connectivity_range<indexed_polygon_kind>(polygon_offsets,polygon_cs);
 
   SUBCASE("forward iteration") {
@@ -80,5 +80,30 @@ TEST_CASE("indexed_poly ngon connectivity") {
     CHECK( c_2[0] == 44 );
     CHECK( c_2[1] == 45 );
     CHECK( c_2[2] == 46 );
+  }
+
+  SUBCASE("push_back") {
+    std::vector<int> new_polygon_offsets = {10     , 14};
+    std::vector<int> new_polygon_cs      = {4,5,6,7};
+    using C_ref = heterogenous_connectivity_ref<int,int,indexed_polygon_kind>;
+    poly_elt_t_reference<int> new_elt_t_ref(new_polygon_offsets.data());
+    C_ref new_connec_ref = {new_elt_t_ref,new_polygon_cs.data()};
+
+    connec_range.push_back(new_connec_ref);
+
+    REQUIRE( connec_range.size() == 4 );
+
+    auto c_3 = connec_range[3];
+    CHECK( c_3.size() == 4 );
+    CHECK( c_3[0] == 4 );
+    CHECK( c_3[1] == 5 );
+    CHECK( c_3[2] == 6 );
+    CHECK( c_3[3] == 7 );
+
+    // check the elements before are untouched
+    std::vector<int> expected_polygon_offsets = {0          , 3              , 7       , 10     , 14};
+    std::vector<int> expected_polygon_cs      = {100,101,102, 142,143,144,145, 44,45,46, 4,5,6,7};
+    CHECK( polygon_offsets == expected_polygon_offsets );
+    CHECK( polygon_cs == expected_polygon_cs );
   }
 };

@@ -183,15 +183,15 @@ class indexed_poly_connectivity_range {
       return begin()[i];
     }
 
-    //auto push_back(const reference c) -> void {
-    //  // requires C is a Container
-    //  auto old_size = memory_length();
-    //  cs->resize( old_size + c.memory_length() );
-
-    //  auto c_position_in_cs = cs->begin() + old_size;
-    //  *c_position_in_cs = c.size();
-    //  std::copy(c.begin(),c.end(),c_position_in_cs+1);
-    //}
+    template<class Reference>
+    // requires Reference is reference or const_reference
+    auto push_back(Reference c) -> void {
+      // requires C0,C1 is a non-const Container
+      auto last_offset = offsets->back();
+      auto new_last_offset = last_offset + c.nb_nodes();
+      offsets->push_back(new_last_offset);
+      std::copy(c.begin(),c.end(),std::back_inserter(*cs));
+    }
 
   private:
     C0* offsets;
