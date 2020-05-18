@@ -14,8 +14,8 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 ## Project ##
 project(
   maia VERSION 0.1.0
-  DESCRIPTION	"Mesh algorithms and manipulations"
-  LANGUAGES	CXX
+  DESCRIPTION "Mesh algorithms and manipulations"
+  LANGUAGES CXX
 )
 
 
@@ -85,28 +85,4 @@ target_link_libraries(${PROJECT_NAME}_unit_tests
 
 
 ## Install ##
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include
-)
-install(EXPORT ${PROJECT_NAME}Targets
-  FILE ${PROJECT_NAME}Targets.cmake
-  NAMESPACE ${PROJECT_NAME}::
-  DESTINATION lib/cmake/${PROJECT_NAME}
-)
-install(DIRECTORY ${src_dir} DESTINATION include FILES_MATCHING PATTERN "*.hpp")
-
-set(TARGET_NAME ${PROJECT_NAME})
-string(REPLACE ";" " " TARGET_DEPENDENCIES_FIND_PACKAGE_STRING "${${PROJECT_NAME}_DEPENDENCIES_FIND_PACKAGE_STRING}")
-configure_file(
-  ${PROJECT_ROOT}/external/project_utils/scripts/cmake/target_config.cmake.in
-  ${PROJECT_NAME}Config.cmake
-  @ONLY
-)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  DESTINATION lib/cmake/${PROJECT_NAME}
-)
-
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+target_install(${PROJECT_NAME})
