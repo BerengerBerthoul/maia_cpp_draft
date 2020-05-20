@@ -1,6 +1,5 @@
 #include "maia/transform/partition_with_boundary_first/boundary_vertices.hpp"
 
-#include "std_e/algorithm/concatenate.hpp"
 #include "std_e/algorithm/algorithm.hpp"
 #include "cpp_cgns/sids/Grid_Coordinates_Elements_and_Flow_Solution.hpp"
 #include "cpp_cgns/sids/elements_utils.hpp"

@@ -111,15 +111,15 @@ create_Zone0(factory& F) -> tree {
   emplace_child(zone,std::move(zone_gc));
 
 
-  std::array<int32_t,3> vertex_dims = {4,3,2};
+  std_e::multi_index<int32_t,3> vertex_dims = {4,3,2};
   //auto quad_faces = generate_faces(vertex_dims) | ranges::to<std::vector>;
   std::vector<quad_4<int32_t>> quad_faces = generate_faces(vertex_dims) | ranges::to<std::vector>;
   maia::offset_vertices_ids(quad_faces,1); // CGNS is 1-indexed
   auto ngons = convert_to_interleaved_ngons(quad_faces) | to_cgns_vector(F.alloc());
 
-  index_t nb_i_faces = 8;
-  index_t nb_j_faces = 9;
-  index_t nb_k_faces = 12;
+  I8 nb_i_faces = 8;
+  I8 nb_j_faces = 9;
+  I8 nb_k_faces = 12;
   int32_t nb_ngons = nb_i_faces + nb_j_faces + nb_k_faces;
 
   auto i_faces_l_parent_elements = generate_faces_left_parent_cell_ids (vertex_dims,0);
@@ -186,7 +186,7 @@ create_Zone1(factory& F) -> tree {
   emplace_child(zone,std::move(zone_gc));
 
 
-  std::array<int32_t,3> vertex_dims = {2,2,2};
+  std_e::multi_index<int32_t,3> vertex_dims = {2,2,2};
   auto quad_faces = generate_faces(vertex_dims) | ranges::to<std::vector>;
   maia::offset_vertices_ids(quad_faces,1); // CGNS is 1-indexed
   auto ngons = convert_to_interleaved_ngons(quad_faces) | to_cgns_vector(F.alloc());

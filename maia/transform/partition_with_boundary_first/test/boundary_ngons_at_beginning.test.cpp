@@ -68,7 +68,8 @@ TEST_CASE("boundary_ngons_at_beginning") {
       //                        sz ngon 0 + sz ngon 1
     }
     SUBCASE("parent elts") {
-      apply_partition_to_parent_elts(std_e::make_view(parent_elts),my_permutation);
+      auto pe_view = std_e::make_view(parent_elts); // TODO remove once parent_elts IS a view
+      apply_partition_to_parent_elts(pe_view,my_permutation);
 
       auto expected_parent_elts = make_md_array<I4>(
         { {0, 8},

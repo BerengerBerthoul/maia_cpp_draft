@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "std_e/future/algorithm.hpp"
-#include "std_e/multi_index/cartesian_product.hpp"
+#include "std_e/multi_index/cartesian_product_size.hpp"
 #include "std_e/multi_index/fortran_order.hpp"
 #include "std_e/multi_index/multi_index_range.hpp"
 #include "maia/connectivity_cgns/connectivity.hpp"

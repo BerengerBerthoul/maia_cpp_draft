@@ -81,7 +81,7 @@ apply_partition_to_ngons(std_e::span<I> old_ngon_cs, const std::vector<I>& permu
 
 
 template<class I> auto
-apply_partition_to_parent_elts(const md_array_view<I,2>& parent_elts, const std::vector<I>& permutation) -> void {
+apply_partition_to_parent_elts(md_array_view<I,2>& parent_elts, const std::vector<I>& permutation) -> void {
   std_e::permute(column(parent_elts,0).begin(),permutation);
   std_e::permute(column(parent_elts,1).begin(),permutation);
 }
@@ -90,7 +90,7 @@ apply_partition_to_parent_elts(const md_array_view<I,2>& parent_elts, const std:
 
 
 auto
-mark_as_boundary_partitionned(tree& ngons, index_t partition_index, index_t ngon_partition_index, factory& F) -> void {
+mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition_index, factory& F) -> void {
   ElementSizeBoundary<I4>(ngons) = partition_index;
 
   tree pt_node = F.newUserDefinedData(".#PartitionIndex");
