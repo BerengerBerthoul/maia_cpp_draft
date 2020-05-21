@@ -39,7 +39,7 @@ TEST_CASE("boundary_ngons_at_beginning") {
 
 
   SUBCASE("boundary/interior_permutation") {
-    auto [ngon_permutation,partition_index] = boundary_interior_permutation(std_e::make_view(parent_elts));
+    auto [ngon_permutation,partition_index] = boundary_interior_permutation(parent_elts);
 
     CHECK( partition_index == 2 );
 
@@ -68,8 +68,7 @@ TEST_CASE("boundary_ngons_at_beginning") {
       //                        sz ngon 0 + sz ngon 1
     }
     SUBCASE("parent elts") {
-      auto pe_view = std_e::make_view(parent_elts); // TODO remove once parent_elts IS a view
-      apply_partition_to_parent_elts(pe_view,my_permutation);
+      apply_partition_to_parent_elts(parent_elts,my_permutation);
 
       auto expected_parent_elts = make_md_array<I4>(
         { {0, 8},
@@ -89,7 +88,6 @@ TEST_CASE("boundary_ngons_at_beginning") {
     CHECK( ngon_permutation == expected_ngon_permutation );
 
 
-    // TODO
     auto expected_ngon_cs = make_cgns_vector<I4>(
       { 4,  10,11,12,13, 
         3,   5, 4, 3,

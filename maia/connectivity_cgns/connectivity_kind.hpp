@@ -14,12 +14,12 @@ namespace cgns {
 template<int elt_type>
 struct connectivity_kind {
   static constexpr int elt_t = elt_type;
-  static constexpr int nb_nodes = cgns::number_of_nodes2(elt_type);
+  static constexpr int nb_nodes = cgns::number_of_nodes(elt_type);
 };
 
 struct mixed_kind {
   static constexpr int type = MIXED;
-  static constexpr int nb_nodes(int n) { return cgns::number_of_nodes2(n); }
+  static constexpr int nb_nodes(int n) { return cgns::number_of_nodes(n); }
   template<class I> using elt_t_reference = I&;
 };
 

@@ -35,7 +35,7 @@ TEST_CASE("partition_with_boundray_vertices") {
       3,   1, 8, 9 },
     alloc
   );
-  auto parent_elts = make_md_array<I4,2>(
+  auto parent_elts = make_md_array<I4>(
     { {1, 4},
       {0, 8},
       {0, 0},

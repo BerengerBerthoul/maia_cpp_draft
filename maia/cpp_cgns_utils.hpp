@@ -3,7 +3,7 @@
 
 #include "range/v3/algorithm/copy.hpp"
 #include "std_e/future/algorithm.hpp"
-#include "cpp_cgns/container_utils.hpp"
+#include "cpp_cgns/array_utils.hpp"
 
 
 namespace cgns {

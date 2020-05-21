@@ -11,8 +11,8 @@ using namespace cgns;
 
 TEST_CASE("unstructured mesh construction") {
   cgns_allocator alloc; // allocates and owns memory
-  Internal I(&alloc);
-  auto base = create_unstructured_base(I);
+  factory F(&alloc);
+  auto base = create_unstructured_base(F);
 
   // zone 0
   auto& z0 = get_child_by_label(base,"Zone_t");

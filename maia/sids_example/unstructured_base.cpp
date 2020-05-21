@@ -79,7 +79,7 @@ create_GridCoords1(factory& F) -> tree {
 
 auto
 create_Zone0(factory& F) -> tree {
-/* Le maillage utilisé est "six quads", cf. simple_meshes.txt */
+/* Mesh used: "six quads", cf. simple_meshes.txt */
   int32_t VertexSize = 24;
   int32_t CellSize = 6;
   int32_t VertexSizeBoundary = 0;
