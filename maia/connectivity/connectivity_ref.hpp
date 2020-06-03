@@ -27,23 +27,11 @@ class connectivity_ref {
       std::copy(other.ptr, other.ptr+other.size(), ptr);
       return *this;
     }
-    connectivity_ref& operator=(connectivity_ref&& other) {
-      // even if the reference is temporary, we only care about the underlying values
-      std::copy(other.ptr, other.ptr+other.size(), ptr);
-      return *this;
-    }
 
     // operator= overloads for different const types {
     template<class I0> auto
     // requires I0 is I or const I
     operator=(const connectivity_ref<I0,kind>& other) -> decltype(auto) {
-      std::copy(other.ptr, other.ptr+other.size(), ptr);
-      return *this;
-    }
-    template<class I0> auto
-    // requires I0 is I or const I
-    operator=(connectivity_ref<I0,kind>&& other) -> decltype(auto) {
-      // even if the reference is temporary, we only care about the underlying values
       std::copy(other.ptr, other.ptr+other.size(), ptr);
       return *this;
     }
