@@ -21,7 +21,7 @@ struct PointList_info {
 
 
 auto
-partition_with_boundary_first(tree& b, factory& F) -> void {
+partition_with_boundary_first(tree& b, const factory& F) -> void {
   STD_E_ASSERT(b.label=="CGNSBase_t");
   auto zs = get_children_by_label(b,"Zone_t");
   auto pl_infos = register_connectivities_PointList_infos(zs);
@@ -37,7 +37,7 @@ partition_with_boundary_first(tree& b, factory& F) -> void {
 
 
 auto
-partition_zone_with_boundary_first(tree& z, factory& F) -> void {
+partition_zone_with_boundary_first(tree& z, const factory& F) -> void {
   STD_E_ASSERT(z.label=="Zone_t");
   partition_coordinates(z);
   partition_elements(z,F);
@@ -104,7 +104,7 @@ save_partition_point(tree& z, I4 nb_of_boundary_vertices) -> void {
 
 
 auto
-partition_elements(tree& z, factory& F) -> void {
+partition_elements(tree& z, const factory& F) -> void {
   STD_E_ASSERT(z.label=="Zone_t");
   auto elt_pools = get_children_by_label(z,"Elements_t");
   for (tree& elt_pool : elt_pools) {

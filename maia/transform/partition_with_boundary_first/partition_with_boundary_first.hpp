@@ -59,11 +59,11 @@ Complexity:
     - Algorithms are at most linear time and space in the arrays number of elements.
 */
 auto
-partition_with_boundary_first(tree& b, factory& F) -> void;
+partition_with_boundary_first(tree& b, const factory& F) -> void;
 
 
 auto
-partition_zone_with_boundary_first(tree& zone, factory& F) -> void;
+partition_zone_with_boundary_first(tree& zone, const factory& F) -> void;
 
 
 auto
@@ -87,7 +87,7 @@ save_partition_point(tree& zone, I4 nb_of_boundary_vertices) -> void;
 
 
 auto
-partition_elements(tree& zone, factory& F) -> void;
+partition_elements(tree& zone, const factory& F) -> void;
 
 
 auto

@@ -15,7 +15,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 project(
   maia VERSION 0.1.0
   DESCRIPTION "Mesh algorithms and manipulations"
-  LANGUAGES CXX
+  LANGUAGES C CXX
 )
 
 
@@ -75,6 +75,25 @@ target_link_libraries(${PROJECT_NAME}
     range-v3::range-v3
 )
 
+
+## Install ##
+target_install(${PROJECT_NAME})
+
+## CPython interface
+add_library(py_${PROJECT_NAME} SHARED "${src_dir}/interop/py_${PROJECT_NAME}.cpp")
+target_link_libraries(py_${PROJECT_NAME}
+  PUBLIC 
+    maia::maia
+)
+set_target_properties(
+  py_${PROJECT_NAME}
+  PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "${PROJECT_NAME}"
+    LINKER_LANGUAGE C
+)
+
+## Unit tests ##
 add_executable(${PROJECT_NAME}_unit_tests ${test_files})
 target_link_libraries(${PROJECT_NAME}_unit_tests
   PUBLIC
@@ -82,7 +101,3 @@ target_link_libraries(${PROJECT_NAME}_unit_tests
   PRIVATE
     doctest::doctest
 )
-
-
-## Install ##
-target_install(${PROJECT_NAME})

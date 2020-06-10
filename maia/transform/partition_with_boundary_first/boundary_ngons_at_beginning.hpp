@@ -90,19 +90,18 @@ apply_partition_to_parent_elts(md_array_view<I,2>& parent_elts, const std::vecto
 
 
 auto
-mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition_index, factory& F) -> void {
+mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition_index, const factory& F) -> void {
   ElementSizeBoundary<I4>(ngons) = partition_index;
 
-  tree pt_node = F.newUserDefinedData(".#PartitionIndex");
-  tree pt_ord = F.newOrdinal(ngon_partition_index);
-  emplace_child(pt_node,std::move(pt_ord));
+  node_value part_idx_val = create_node_value_1d({ngon_partition_index},F.alloc());
+  tree pt_node = F.newUserDefinedData(".#PartitionIndex",part_idx_val);
 
   emplace_child(ngons,std::move(pt_node));
 }
 
 
 auto
-permute_boundary_ngons_at_beginning(tree& ngons, factory& F) -> std::vector<I4> { // TODO find a way to do it for I4 and I8
+permute_boundary_ngons_at_beginning(tree& ngons, const factory& F) -> std::vector<I4> { // TODO find a way to do it for I4 and I8
   // Precondition: ngons.type = "Elements_t" and elements of type NGON_n
   tree parent_elts_node = get_child_by_name(ngons,"ParentElements");
   auto parent_elts = view_as_md_array<I4,2>(parent_elts_node.value);
