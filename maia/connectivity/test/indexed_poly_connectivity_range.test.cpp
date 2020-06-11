@@ -3,7 +3,6 @@
 #include "maia/connectivity/indexed_poly_connectivity_range.hpp"
 #include "maia/connectivity/test/test_utils.hpp"
 #include <algorithm>
-#include <iostream>
 
 using namespace maia;
 

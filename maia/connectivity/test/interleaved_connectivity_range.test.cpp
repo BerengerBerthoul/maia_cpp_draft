@@ -27,10 +27,11 @@ TEST_CASE("interleaved ngon connectivity") {
 
     auto idx_table = index_table(cs_fwd_range);
 
-    CHECK( idx_table.size() == 3 );
+    CHECK( idx_table.size() == 4 );
     CHECK( idx_table[0] == 0 );
     CHECK( idx_table[1] == 4 );
     CHECK( idx_table[2] == 9 );
+    CHECK( idx_table[3] == 12);
   }
 
 

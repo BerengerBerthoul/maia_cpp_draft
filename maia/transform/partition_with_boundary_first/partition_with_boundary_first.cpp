@@ -110,9 +110,13 @@ partition_elements(tree& z, const factory& F) -> void {
   for (tree& elt_pool : elt_pools) {
     if (!is_boundary_partitionned_element_pool(elt_pool)) {
       if (ElementType<I4>(elt_pool)==NGON_n) {
-        auto elements_permutation = permute_boundary_ngons_at_beginning(elt_pool,F);
+        auto elts_permutation_0 = sort_ngons_by_nb_vertices(elt_pool);
+        auto elts_permutation_1 = permute_boundary_ngons_at_beginning(elt_pool,F);
 
-        re_number_point_lists(z,ElementRange<I4>(elt_pool),elements_permutation);
+        mark_polygon_groups(elt_pool,F);
+
+        auto elts_permutation = std_e::compose_permutations(elts_permutation_1,elts_permutation_0); // TODO why do we have to invert?
+        re_number_point_lists(z,ElementRange<I4>(elt_pool),elts_permutation);
       }
     }
   }

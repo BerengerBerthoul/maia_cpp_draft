@@ -68,7 +68,7 @@ TEST_CASE("boundary_ngons_at_beginning") {
       //                        sz ngon 0 + sz ngon 1
     }
     SUBCASE("parent elts") {
-      apply_partition_to_parent_elts(parent_elts,my_permutation);
+      apply_permutation_to_parent_elts(parent_elts,my_permutation);
 
       auto expected_parent_elts = make_md_array<I4>(
         { {0, 8},
@@ -113,9 +113,7 @@ TEST_CASE("boundary_ngons_at_beginning") {
     REQUIRE( partition_index_nodes.size() == 1 );
     CHECK( name(partition_index_nodes[0]) == ".#PartitionIndex" );
 
-    tree_range partition_index_ords = get_children_by_label(partition_index_nodes[0],"Ordinal_t");
-    REQUIRE( partition_index_ords.size() == 1 );
-    I4* ord_ptr = (I4*)value(partition_index_ords[0]).data;
+    I4* ord_ptr = (I4*)value(partition_index_nodes[0]).data;
     CHECK( *ord_ptr == 1+4 + 1+3 );
   }
 }

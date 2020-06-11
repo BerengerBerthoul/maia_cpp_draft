@@ -4,13 +4,13 @@
 #include "maia/connectivity/interleaved_connectivity_range.hpp"
 
 
-template<class C, class CK, class I = typename C::value_type> auto
+template<class C, class CK, class I = std::remove_const_t<typename C::value_type>> auto
 index_table(interleaved_connectivity_range<C,CK> cs_fwd_accessor) -> std::vector<I> {
-  std::vector<I> idx_table;
+  std::vector<I> idx_table = {0};
   I idx = 0;
   for (const auto& c : cs_fwd_accessor) {
-    idx_table.push_back(idx);
     idx += 1+c.nb_nodes();
+    idx_table.push_back(idx);
   }
   return idx_table;
 }
@@ -38,33 +38,41 @@ class interleaved_connectivity_random_access_iterator {
       return fwd_it->size();
     }
 
-    template<class Integer>
-    auto operator+=(Integer i) -> this_type& {
+    template<class I0, std::enable_if_t< std::is_integral_v<I0> , int > =0>
+    auto operator+=(I0 i) -> this_type& {
       pos += i;
       return *this;
     }
-    template<class Integer>
-    auto operator-=(Integer i) -> this_type& {
+    template<class I0, std::enable_if_t< std::is_integral_v<I0> , int > =0>
+    auto operator-=(I0 i) -> this_type& {
       return *this += (-i);
     }
     auto operator++() -> this_type& { return (*this) += 1; }
     auto operator--() -> this_type& { return (*this) -= 1; }
 
-    template<class Integer> friend auto
-    operator+(const this_type& it, Integer i) -> this_type {
+    template<class I0, std::enable_if_t< std::is_integral_v<I0> , int > =0> friend auto
+    operator+(const this_type& it, I0 i) -> this_type {
       this_type it0(it);
       it0 += i;
       return it0;
     }
-    template<class Integer> friend auto
-    operator-(const this_type& it, Integer i) -> this_type {
+    template<class I0, std::enable_if_t< std::is_integral_v<I0> , int > =0> friend auto
+    operator-(const this_type& it, I0 i) -> this_type {
       this_type it0(it);
       it0 -= i;
       return it0;
     }
+    friend auto
+    operator-(const this_type& x, const this_type& y) -> I {
+      STD_E_ASSERT(x.first==y.first); // iterators of same connectivity
+      return x.pos-y.pos;
+    }
 
     auto operator*() const {
       return *fwd_it();
+    }
+    auto operator->() const {
+      return fwd_it().operator->();
     }
 
     friend inline auto
@@ -127,24 +135,24 @@ class interleaved_connectivity_random_access_range {
     auto memory_length() const -> I {
       return fwd_accessor.memory_length();
     }
-    auto size() const -> std::ptrdiff_t {
-      return idx_table.size();
+    auto size() const -> I {
+      return idx_table.size()-1;
     }
 
-    auto begin()       ->       iterator { return {data()                  ,idx_table        ,0}; }
-    auto begin() const -> const_iterator { return {data()                  ,idx_table.begin(),0}; }
-    auto end()         ->       iterator { return {data() + memory_length(),idx_table        ,0}; }
-    auto end()   const -> const_iterator { return {data() + memory_length(),idx_table.end()  ,0}; }
+    auto begin()       ->       iterator { return {data(), idx_table, 0     }; }
+    auto begin() const -> const_iterator { return {data(), idx_table, 0     }; }
+    auto end()         ->       iterator { return {data(), idx_table, size()}; }
+    auto end()   const -> const_iterator { return {data(), idx_table, size()}; }
 
-    template<class Integer>
-    auto operator[](Integer i) -> reference {
+    template<class I0, std::enable_if_t< std::is_integral_v<I0> , int > =0>
+    auto operator[](I0 i) -> reference {
       auto pos = data() + idx_table[i];
       auto& elt_t_ref = *pos;
       auto con_start = pos+1;
       return {elt_t_ref,con_start};
     }
-    template<class Integer>
-    auto operator[](Integer i) const -> const reference {
+    template<class I0, std::enable_if_t< std::is_integral_v<I0> , int > =0>
+    auto operator[](I0 i) const -> const reference {
       auto pos = data() + idx_table[i];
       auto& elt_t_ref = *pos;
       auto con_start = pos+1;

@@ -48,6 +48,10 @@ class interleaved_connectivity_iterator {
     }
 
     auto operator*() const -> reference { return {elt_t_ref(),begin_nodes()}; }
+
+    auto operator->() const {
+      return std_e::arrow_proxy<reference>{**this};
+    }
     
     auto data() const -> I* { return ptr; }
   private:
