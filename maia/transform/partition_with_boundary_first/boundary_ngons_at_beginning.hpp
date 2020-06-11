@@ -99,35 +99,48 @@ mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition
 
   emplace_child(ngons,std::move(pt_node));
 }
-inline auto
-mark_polygon_groups(tree& ngons, const factory& F) -> void {
-  tree ngon_connectivity = get_child_by_name(ngons,"ElementConnectivity");
-  auto connectivities = view_as_span<I4>(ngon_connectivity.value);
-  auto conn_start = connectivities.data();
-  auto ngon_accessor = cgns::interleaved_ngon_range(connectivities);
 
+template<class T> inline auto
+mark_polygon_groups(const std::string& bnd_or_interior, T& ngon_accessor, const I4* global_start, const factory& F) -> std::vector<tree> {
   auto polygon_types = make_cgns_vector<I4>(F.alloc());
   auto polygon_type_starts = make_cgns_vector<I4>(F.alloc());
 
   auto equal_nb_vertices = [](const auto& conn0, const auto& conn1){ return conn0.nb_nodes()==conn1.nb_nodes(); };
-  auto record_type_and_start = [&polygon_types,&polygon_type_starts,conn_start](const auto& conn_it){
+  auto record_type_and_start = [&polygon_types,&polygon_type_starts,global_start](const auto& conn_it){
     polygon_types.push_back(conn_it->nb_nodes());
-    polygon_type_starts.push_back(conn_it.data()-conn_start);
+    polygon_type_starts.push_back(conn_it.data()-global_start);
   };
   std_e::for_each_mismatch(ngon_accessor.begin(),ngon_accessor.end(),equal_nb_vertices,record_type_and_start);
+  polygon_type_starts.push_back(ngon_accessor.data()+ngon_accessor.memory_length()-global_start);
 
   node_value polygon_type_val = view_as_node_value(polygon_types);
   node_value polygon_type_start_val = view_as_node_value(polygon_type_starts);
-  tree pt_node = F.newUserDefinedData(".#PolygonType",polygon_type_val);
-  tree pts_node = F.newUserDefinedData(".#PolygonTypeStart",polygon_type_start_val);
-  emplace_child(ngons,std::move(pt_node));
-  emplace_child(ngons,std::move(pts_node));
+  return {
+    F.newUserDefinedData(".#PolygonType"+bnd_or_interior,polygon_type_val),
+    F.newUserDefinedData(".#PolygonTypeStart"+bnd_or_interior,polygon_type_start_val)
+  };
+}
+inline auto
+mark_polygon_groups(tree& ngons, const factory& F) -> void {
+  auto ngon_connectivity = ElementConnectivity<I4>(ngons);
+  auto ngon_start = ngon_connectivity.data();
+  auto ngon_size = ngon_connectivity.size();
+  I4 bnd_finish_idx = view_as_span<I8>(get_child_by_name(ngons,".#PartitionIndex").value)[0];
+
+  auto ngon_bnd_connectivity = std_e::make_span(ngon_start,bnd_finish_idx);
+  auto ngon_iterior_connectivity = std_e::make_span(ngon_start+bnd_finish_idx,ngon_start+ngon_size);
+
+  auto ngon_bnd_accessor = cgns::interleaved_ngon_range(ngon_bnd_connectivity);
+  auto ngon_interior_accessor = cgns::interleaved_ngon_range(ngon_iterior_connectivity);
+
+  emplace_children(ngons,mark_polygon_groups("Boundary",ngon_bnd_accessor,ngon_start,F));
+  emplace_children(ngons,mark_polygon_groups("Interior",ngon_interior_accessor,ngon_start,F));
 }
 //auto
 //mark_polyhedron_groups(tree& nfaces, const factory& F) -> void {
   //auto ngon_connectivity = ElementConnectivity<I4>(nfaces);
-//  auto conn_start = connectivities.data();
-//  auto nface_accessor = cgns::interleaved_nface_range(connectivities);
+//  auto conn_start = ngon_connectivity.data();
+//  auto nface_accessor = cgns::interleaved_nface_range(ngon_connectivity);
 //
 //  auto polyhedron_type = make_cgns_vector<I4>(F.alloc());
 //  auto polyhedron_type_start = make_cgns_vector<I4>(F.alloc());
@@ -173,13 +186,13 @@ permute_boundary_ngons_at_beginning(tree& ngons, const factory& F) -> std::vecto
   // Precondition: ngons.type = "Elements_t" and elements of type NGON_n
   tree parent_elts_node = get_child_by_name(ngons,"ParentElements");
   auto parent_elts = view_as_md_array<I4,2>(parent_elts_node.value);
-  tree ngon_connectivity = get_child_by_name(ngons,"ElementConnectivity");
+  auto ngon_connectivity = ElementConnectivity<I4>(ngons);
 
   // compute permutation
   auto [permutation,partition_index] = boundary_interior_permutation(parent_elts);
 
   // apply permutation
-  auto ngon_partition_index = apply_partition_to_ngons(view_as_span<I4>(ngon_connectivity.value),permutation,partition_index);
+  auto ngon_partition_index = apply_partition_to_ngons(ngon_connectivity,permutation,partition_index);
   apply_permutation_to_parent_elts(parent_elts,permutation);
 
   mark_as_boundary_partitionned(ngons,partition_index,ngon_partition_index,F);
@@ -236,13 +249,13 @@ sort_ngons_by_nb_vertices(tree& ngons) -> std::vector<I4> {
   // Precondition: ngons.type = "Elements_t" and elements of type NGON_n
   tree parent_elts_node = get_child_by_name(ngons,"ParentElements");
   auto parent_elts = view_as_md_array<I4,2>(parent_elts_node.value);
-  tree ngon_connectivity = get_child_by_name(ngons,"ElementConnectivity");
+  auto ngon_connectivity = ElementConnectivity<I4>(ngons);
 
   // compute permutation
-  auto permutation = sorting_by_nb_vertices_permutation(view_as_span<I4>(ngon_connectivity.value));
+  auto permutation = sorting_by_nb_vertices_permutation(ngon_connectivity);
 
   // apply permutation
-  apply_permutation_to_ngon(view_as_span<I4>(ngon_connectivity.value),permutation);
+  apply_permutation_to_ngon(ngon_connectivity,permutation);
   apply_permutation_to_parent_elts(parent_elts,permutation);
 
   return permutation;

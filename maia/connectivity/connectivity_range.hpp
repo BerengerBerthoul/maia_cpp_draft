@@ -13,6 +13,12 @@ class connectivity_iterator {
     using kind = Connectivity_kind;
     static constexpr int nb_nodes = kind::nb_nodes;
 
+    /// std::iterator type traits
+    using value_type = connectivity_ref<I,kind>; // TODO connectivity_view
+    using reference = connectivity_ref<I,kind>;
+    using difference_type = I;
+    using iterator_category = std::forward_iterator_tag; // TODO random
+
     connectivity_iterator() = default;
     connectivity_iterator(I* ptr)
       : ptr(ptr)
@@ -24,7 +30,7 @@ class connectivity_iterator {
     }
 
     auto operator*() const {
-      return connectivity_ref<I,kind>(ptr);
+      return reference(ptr);
     }
 
     auto data() const -> I* {
@@ -41,6 +47,14 @@ class connectivity_iterator {
     }
   private:
     I* ptr;
+};
+template<class I, class CK>
+struct std::iterator_traits<connectivity_iterator<I,CK>> {
+  using type = connectivity_iterator<I,CK>;
+  using value_type = typename type::value_type;
+  using reference = typename type::reference;
+  using difference_type = typename type::difference_type;
+  using iterator_category = typename type::iterator_category;
 };
 
 

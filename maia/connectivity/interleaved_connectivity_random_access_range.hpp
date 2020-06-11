@@ -27,6 +27,12 @@ class interleaved_connectivity_random_access_iterator {
 
     using I_nc = std::remove_const_t<I>;
 
+    /// std::iterator type traits
+    using value_type = typename fwd_it_type::connec_view_type;
+    using reference = typename fwd_it_type::connec_ref_type;
+    using difference_type = I;
+    using iterator_category = std::forward_iterator_tag; // TODO random
+
     interleaved_connectivity_random_access_iterator() = default;
     interleaved_connectivity_random_access_iterator(I* first, const std::vector<I_nc>& idx_table, I pos)
       : first(first)
@@ -98,6 +104,14 @@ class interleaved_connectivity_random_access_iterator {
     I* first;
     I_nc pos;
     const std::vector<I_nc>& idx_table;
+};
+template<class I, class CK>
+struct std::iterator_traits<interleaved_connectivity_random_access_iterator<I,CK>> {
+  using type = interleaved_connectivity_random_access_iterator<I,CK>;
+  using value_type = typename type::value_type;
+  using reference = typename type::reference;
+  using difference_type = typename type::difference_type;
+  using iterator_category = typename type::iterator_category;
 };
 
 

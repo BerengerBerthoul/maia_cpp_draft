@@ -29,6 +29,7 @@ class connectivity_ref {
     }
 
     // operator= overloads for different const types {
+    template<class I0,class CK> friend class connectivity_ref;
     template<class I0> auto
     // requires I0 is I or const I
     operator=(const connectivity_ref<I0,kind>& other) -> decltype(auto) {
