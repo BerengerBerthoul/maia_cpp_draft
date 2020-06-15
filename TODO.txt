@@ -1,1 +1,3 @@
 connectivity_kind not templated by kind
+
+connectivity for polyhedrons (nface often does not make sense without ngon -> bundle them together in a connectivity)

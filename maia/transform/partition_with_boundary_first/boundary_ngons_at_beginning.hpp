@@ -160,23 +160,23 @@ mark_polygon_groups(tree& ngons, const factory& F) -> void {
 //  emplace_child(nfaces,std::move(pts_node));
 //}
 inline auto
-mark_simple_polyhedron_groups(tree& nfaces, I4 prism_start, const factory& F) -> void {
-  // Precondition: nfaces is sorted with tet,pyra,prism,hex; with no other polyhedron type
+mark_simple_polyhedron_groups(tree& nfaces, I4 penta_start, const factory& F) -> void {
+  // Precondition: nfaces is sorted with tet,pyra,penta,hex; with no other polyhedron type
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
   auto nface_accessor = cgns::interleaved_nface_random_access_range(nface_connectivity);
 
   auto first_pyra = std_e::find_if(nface_accessor.begin(),nface_accessor.end(),[](const auto& c){ return c.size()==5; });
   auto first_hex = std_e::find_if(nface_accessor.begin(),nface_accessor.end(),[](const auto& c){ return c.size()==6; });
-  auto polyhedron_type_starts = make_cgns_vector<I4>(5,F.alloc()); // tet, pyra, prism, hex, end
+  auto polyhedron_type_starts = make_cgns_vector<I4>(5,F.alloc()); // tet, pyra, penta, hex, end
   polyhedron_type_starts[0] = 0; // tets start at 0
   polyhedron_type_starts[1] = first_pyra.data()-nface_accessor.data();
-  polyhedron_type_starts[2] = prism_start; // prism start
+  polyhedron_type_starts[2] = penta_start; // penta start
   polyhedron_type_starts[3] = first_hex.data()-nface_accessor.data();
   polyhedron_type_starts[4] = nface_connectivity.size();
 
   node_value polyhedron_type_start_val = view_as_node_value(polyhedron_type_starts);
   tree pts_node = F.newUserDefinedData(".#PolygonSimpleTypeStart",polyhedron_type_start_val);
-  tree desc = F.newDescriptor("Node info","The .#PolygonSimpleTypeStart node is present for an Elements_t of NFACE_n type if the polyhedrons are only simple, linear ones and sorted with Tets firsts, then Pyras, then Prisms then Hexes. The .#PolygonSimpleTypeStart values are the starting indices for each of these elements, in respective order (the last number is the size of the NFACE connectivity)");
+  tree desc = F.newDescriptor("Node info","The .#PolygonSimpleTypeStart node is present for an Elements_t of NFACE_n type if the polyhedrons are only simple, linear ones and sorted with Tets firsts, then Pyras, then Pentas then Hexes. The .#PolygonSimpleTypeStart values are the starting indices for each of these elements, in respective order (the last number is the size of the NFACE connectivity)");
   emplace_child(pts_node,std::move(desc));
   emplace_child(nfaces,std::move(pts_node));
 }
@@ -312,7 +312,7 @@ sort_nfaces_by_nb_faces(std_e::span<I4> nface_connectivity) -> std::vector<I4> {
 }
 
 inline auto
-pyra_prism_permutation(std_e::span<I4> nface_connectivity, const tree& ngons) -> std::pair<std::vector<I4>,I4> {
+pyra_penta_permutation(std_e::span<I4> nface_connectivity, const tree& ngons) -> std::pair<std::vector<I4>,I4> {
   I4 ngon_start_id = ElementRange<I4>(ngons)[0];
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
 
@@ -346,24 +346,24 @@ pyra_prism_permutation(std_e::span<I4> nface_connectivity, const tree& ngons) ->
   std::iota(begin(permutation),end(permutation),0);
   auto partition_ptr = std::stable_partition(permutation.begin()+first_5_index,permutation.begin()+last_5_index,is_pyra);
   I4 partition_index = partition_ptr - permutation.begin();
-  I4 partition_prism_start = (nface_accessor.begin()+partition_index).data() - nface_accessor.data();
+  I4 partition_penta_start = (nface_accessor.begin()+partition_index).data() - nface_accessor.data();
 
-  return {permutation,partition_prism_start};
+  return {permutation,partition_penta_start};
 }
 inline auto
-partition_pyra_prism(std_e::span<I4> nface_connectivity, const tree& ngons) -> I4 {
-  auto [permutation,partition_prism_start] = pyra_prism_permutation(nface_connectivity,ngons);
+partition_pyra_penta(std_e::span<I4> nface_connectivity, const tree& ngons) -> I4 {
+  auto [permutation,partition_penta_start] = pyra_penta_permutation(nface_connectivity,ngons);
   apply_permutation_to_nface(nface_connectivity,permutation);
   // TODO: replace global begin,end by nb_faces=5 begin/end
-  return partition_prism_start;
+  return partition_penta_start;
 }
 
 inline auto
 sort_nfaces_by_simple_polyhedron_type(tree& nfaces, const tree& ngons) -> I4 {
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
   sort_nfaces_by_nb_faces(nface_connectivity);
-  I4 partition_prism_start = partition_pyra_prism(nface_connectivity,ngons);
-  return partition_prism_start;
+  I4 partition_penta_start = partition_pyra_penta(nface_connectivity,ngons);
+  return partition_penta_start;
 }
 
 } // cgns

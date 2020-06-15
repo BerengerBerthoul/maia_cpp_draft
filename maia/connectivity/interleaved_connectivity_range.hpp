@@ -6,6 +6,7 @@
 #include "std_e/utils/meta.hpp"
 #include "std_e/base/not_implemented_exception.hpp"
 #include "maia/connectivity/heterogenous_connectivity_ref.hpp"
+#include "maia/connectivity/heterogenous_connectivity_view.hpp"
 
 
 
@@ -17,7 +18,7 @@ class interleaved_connectivity_iterator {
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using connec_view_type = heterogenous_connectivity_ref<I,I,kind>; // TODO heterogenous_connectivity_view
+    using connec_view_type = heterogenous_connectivity_view<I,I,kind>;
     using connec_ref_type = heterogenous_connectivity_ref<I,I,kind>;
        
     /// std::iterator type traits
