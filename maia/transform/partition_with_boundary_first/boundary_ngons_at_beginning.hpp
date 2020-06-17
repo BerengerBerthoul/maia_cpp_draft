@@ -165,13 +165,13 @@ mark_simple_polyhedron_groups(tree& nfaces, I4 penta_start, const factory& F) ->
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
   auto nface_accessor = cgns::interleaved_nface_random_access_range(nface_connectivity);
 
-  auto first_pyra = std_e::find_if(nface_accessor.begin(),nface_accessor.end(),[](const auto& c){ return c.size()==5; });
-  auto first_hex = std_e::find_if(nface_accessor.begin(),nface_accessor.end(),[](const auto& c){ return c.size()==6; });
+  auto last_tet = std::find_if_not(nface_accessor.begin(),nface_accessor.end(),[](const auto& c){ return c.size()==4; });
+  auto last_penta = std::find_if_not(last_tet,nface_accessor.end(),[](const auto& c){ return c.size()==5; });
   auto polyhedron_type_starts = make_cgns_vector<I4>(5,F.alloc()); // tet, pyra, penta, hex, end
   polyhedron_type_starts[0] = 0; // tets start at 0
-  polyhedron_type_starts[1] = first_pyra.data()-nface_accessor.data();
+  polyhedron_type_starts[1] = last_tet.data()-nface_accessor.data();
   polyhedron_type_starts[2] = penta_start; // penta start
-  polyhedron_type_starts[3] = first_hex.data()-nface_accessor.data();
+  polyhedron_type_starts[3] = last_penta.data()-nface_accessor.data();
   polyhedron_type_starts[4] = nface_connectivity.size();
 
   node_value polyhedron_type_start_val = view_as_node_value(polyhedron_type_starts);

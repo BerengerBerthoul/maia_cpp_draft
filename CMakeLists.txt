@@ -92,6 +92,9 @@ set_target_properties(
     OUTPUT_NAME "${PROJECT_NAME}"
     LINKER_LANGUAGE C
 )
+install(TARGETS py_${PROJECT_NAME} EXPORT py_${PROJECT_NAME}Targets
+  LIBRARY DESTINATION py
+)
 
 ## Unit tests ##
 add_executable(${PROJECT_NAME}_unit_tests ${test_files})

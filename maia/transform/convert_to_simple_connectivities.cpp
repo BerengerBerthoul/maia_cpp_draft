@@ -105,16 +105,6 @@ convert_to_tetra(const T& tetra_accessor, const tree& ngons, I4 elt_pool_start, 
     I4 tri_1_idx = tet[1]-first_ngon_id;
     auto tri_0 = ngon_accessor[tri_0_idx];
     auto tri_1 = ngon_accessor[tri_1_idx];
-    //std::cout << "tri_0_idx = " << tri_0_idx << "\n";
-    //std::cout << "parent_elts(0,0) = " << parent_elts(0,0) << "\n";
-    //std::cout << "parent_elts(0,1) = " << parent_elts(0,1) << "\n";
-    //std::cout << "parent_elts(tri_0_idx-1,0) = " << parent_elts(tri_0_idx-1,0) << "\n";
-    //std::cout << "parent_elts(tri_0_idx-1,1) = " << parent_elts(tri_0_idx-1,1) << "\n";
-    //std::cout << "parent_elts(tri_0_idx,0) = " << parent_elts(tri_0_idx,0) << "\n";
-    //std::cout << "parent_elts(tri_0_idx,1) = " << parent_elts(tri_0_idx,1) << "\n";
-    //std::cout << "parent_elts(tri_0_idx+1,0) = " << parent_elts(tri_0_idx+1,0) << "\n";
-    //std::cout << "parent_elts(tri_0_idx+1,1) = " << parent_elts(tri_0_idx+1,1) << "\n";
-    //std::cout << "tetra_id = " << tetra_id << "\n";
     if (parent_elts(tri_0_idx,0)==tetra_id) { // outward normal
       d_first = std::reverse_copy(begin(tri_0),end(tri_0),d_first);
     } else {
@@ -278,7 +268,7 @@ convert_to_hexa(const T& hexa_accessor, const tree& ngons, I4 elt_pool_start, I4
   auto ngon_accessor = cgns::interleaved_ngon_random_access_range(ngon_connectivity);
 
   I4 nb_hexas = hexa_accessor.size();
-  I4 nb_vertices = nb_hexas*6;
+  I4 nb_vertices = nb_hexas*8;
   auto homogenous_connectivities = make_cgns_vector<I4>(nb_vertices,F.alloc());
   auto d_first = homogenous_connectivities.data();
 
