@@ -68,7 +68,7 @@ TEST_CASE("boundary_ngons_at_beginning") {
       //                        sz ngon 0 + sz ngon 1
     }
     SUBCASE("parent elts") {
-      apply_permutation_to_parent_elts(parent_elts,my_permutation);
+      apply_ngon_permutation_to_parent_elts(parent_elts,my_permutation);
 
       auto expected_parent_elts = make_md_array<I4>(
         { {0, 8},

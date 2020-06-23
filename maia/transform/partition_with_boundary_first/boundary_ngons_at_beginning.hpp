@@ -82,9 +82,16 @@ apply_partition_to_ngons(std_e::span<I> old_ngon_cs, const std::vector<I>& permu
 
 
 template<class I> auto
-apply_permutation_to_parent_elts(md_array_view<I,2>& parent_elts, const std::vector<I>& permutation) -> void {
+apply_ngon_permutation_to_parent_elts(md_array_view<I,2>& parent_elts, const std::vector<I>& permutation) -> void {
   std_e::permute(column(parent_elts,0).begin(),permutation);
   std_e::permute(column(parent_elts,1).begin(),permutation);
+}
+template<class I> auto
+apply_nface_permutation_to_parent_elts(md_array_view<I,2>& parent_elts, const std::vector<I>& permutation) -> void {
+  auto p = std_e::inverse_permutation(permutation);
+  for (I4& cell_id : parent_elts) {
+    cell_id = p[cell_id-1] + 1; // TODO 1 -> start
+  }
 }
 
 
@@ -160,7 +167,7 @@ mark_polygon_groups(tree& ngons, const factory& F) -> void {
 //  emplace_child(nfaces,std::move(pts_node));
 //}
 inline auto
-mark_simple_polyhedron_groups(tree& nfaces, I4 penta_start, const factory& F) -> void {
+mark_simple_polyhedron_groups(tree& nfaces, const tree& ngons, I4 penta_start, const factory& F) -> void {
   // Precondition: nfaces is sorted with tet,pyra,penta,hex; with no other polyhedron type
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
   auto nface_accessor = cgns::interleaved_nface_random_access_range(nface_connectivity);
@@ -174,6 +181,27 @@ mark_simple_polyhedron_groups(tree& nfaces, I4 penta_start, const factory& F) ->
   polyhedron_type_starts[3] = last_penta.data()-nface_accessor.data();
   polyhedron_type_starts[4] = nface_connectivity.size();
 
+  //// CHECK Hex
+  //auto first_ngon_id = ElementRange<I4>(ngons)[0];
+  //auto ngon_connectivity = ElementConnectivity<I4>(ngons);
+  //auto ngon_accessor = cgns::interleaved_ngon_random_access_range(ngon_connectivity);
+  //auto hexa_range = std_e::make_span(nface_connectivity.data()+polyhedron_type_starts[3],nface_connectivity.data()+polyhedron_type_starts[4]);
+  //auto hexa_accessor = cgns::interleaved_nface_random_access_range(hexa_range);
+  //for (const auto& hexa : hexa_accessor) {
+  //  bool hex = true;
+  //  for (int i=0; i<6; ++i) {
+  //    I4 face_idx = hexa[i]-first_ngon_id;
+  //    auto face = ngon_accessor[face_idx];
+  //    if (face.size()!=4) {
+  //      std::cout << "face.size() = " << face.size() << "\n";
+  //      hex = false;
+  //    }
+  //    //STD_E_ASSERT(face.size()==4);
+  //  }
+  //  STD_E_ASSERT(hex);
+  //}
+  //// end CHECK
+
   node_value polyhedron_type_start_val = view_as_node_value(polyhedron_type_starts);
   tree pts_node = F.newUserDefinedData(".#PolygonSimpleTypeStart",polyhedron_type_start_val);
   tree desc = F.newDescriptor("Node info","The .#PolygonSimpleTypeStart node is present for an Elements_t of NFACE_n type if the polyhedrons are only simple, linear ones and sorted with Tets firsts, then Pyras, then Pentas then Hexes. The .#PolygonSimpleTypeStart values are the starting indices for each of these elements, in respective order (the last number is the size of the NFACE connectivity)");
@@ -184,8 +212,7 @@ mark_simple_polyhedron_groups(tree& nfaces, I4 penta_start, const factory& F) ->
 inline auto
 permute_boundary_ngons_at_beginning(tree& ngons, const factory& F) -> std::vector<I4> { // TODO find a way to do it for I4 and I8
   // Precondition: ngons.type = "Elements_t" and elements of type NGON_n
-  tree parent_elts_node = get_child_by_name(ngons,"ParentElements");
-  auto parent_elts = view_as_md_array<I4,2>(parent_elts_node.value);
+  auto parent_elts = ParentElements<I4>(ngons);
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
 
   // compute permutation
@@ -193,7 +220,7 @@ permute_boundary_ngons_at_beginning(tree& ngons, const factory& F) -> std::vecto
 
   // apply permutation
   auto ngon_partition_index = apply_partition_to_ngons(ngon_connectivity,permutation,partition_index);
-  apply_permutation_to_parent_elts(parent_elts,permutation);
+  apply_ngon_permutation_to_parent_elts(parent_elts,permutation);
 
   mark_as_boundary_partitionned(ngons,partition_index,ngon_partition_index,F);
 
@@ -247,8 +274,7 @@ apply_permutation_to_ngon(std_e::span<I> old_ngon_cs, const std::vector<I>& perm
 inline auto
 sort_ngons_by_nb_vertices(tree& ngons) -> std::vector<I4> {
   // Precondition: ngons.type = "Elements_t" and elements of type NGON_n
-  tree parent_elts_node = get_child_by_name(ngons,"ParentElements");
-  auto parent_elts = view_as_md_array<I4,2>(parent_elts_node.value);
+  auto parent_elts = ParentElements<I4>(ngons);
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
 
   // compute permutation
@@ -256,7 +282,7 @@ sort_ngons_by_nb_vertices(tree& ngons) -> std::vector<I4> {
 
   // apply permutation
   apply_permutation_to_ngon(ngon_connectivity,permutation);
-  apply_permutation_to_parent_elts(parent_elts,permutation);
+  apply_ngon_permutation_to_parent_elts(parent_elts,permutation);
 
   return permutation;
 }
@@ -305,9 +331,11 @@ apply_permutation_to_nface(std_e::span<I> old_nface_cs, const std::vector<I>& pe
 }
 
 inline auto
-sort_nfaces_by_nb_faces(std_e::span<I4> nface_connectivity) -> std::vector<I4> {
+sort_nfaces_by_nb_faces(std_e::span<I4> nface_connectivity, tree& ngons) -> std::vector<I4> {
   auto permutation = sorting_by_nb_faces_permutation(nface_connectivity);
   apply_permutation_to_nface(nface_connectivity,permutation);
+  auto parent_elts = ParentElements<I4>(ngons);
+  apply_nface_permutation_to_parent_elts(parent_elts,permutation);
   return permutation;
 }
 
@@ -351,17 +379,19 @@ pyra_penta_permutation(std_e::span<I4> nface_connectivity, const tree& ngons) ->
   return {permutation,partition_penta_start};
 }
 inline auto
-partition_pyra_penta(std_e::span<I4> nface_connectivity, const tree& ngons) -> I4 {
+partition_pyra_penta(std_e::span<I4> nface_connectivity, tree& ngons) -> I4 {
   auto [permutation,partition_penta_start] = pyra_penta_permutation(nface_connectivity,ngons);
   apply_permutation_to_nface(nface_connectivity,permutation);
+  auto parent_elts = ParentElements<I4>(ngons);
+  apply_nface_permutation_to_parent_elts(parent_elts,permutation);
   // TODO: replace global begin,end by nb_faces=5 begin/end
   return partition_penta_start;
 }
 
 inline auto
-sort_nfaces_by_simple_polyhedron_type(tree& nfaces, const tree& ngons) -> I4 {
+sort_nfaces_by_simple_polyhedron_type(tree& nfaces, tree& ngons) -> I4 {
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
-  sort_nfaces_by_nb_faces(nface_connectivity);
+  sort_nfaces_by_nb_faces(nface_connectivity,ngons);
   I4 partition_penta_start = partition_pyra_penta(nface_connectivity,ngons);
   return partition_penta_start;
 }
