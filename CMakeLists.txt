@@ -53,10 +53,17 @@ file(GLOB_RECURSE cpp_and_test_files
   CONFIGURE_DEPENDS
   "${src_dir}/*.cpp"
 )
+file(GLOB_RECURSE python_files
+  CONFIGURE_DEPENDS
+  "${src_dir}/*.py"
+)
 set(cpp_files ${cpp_and_test_files})
 list(FILTER cpp_files EXCLUDE REGEX ".*\.test\.cpp$")
+list(FILTER cpp_files EXCLUDE REGEX ".*\.cpython\.cpp$")
 set(test_files ${cpp_and_test_files})
 list(FILTER test_files INCLUDE REGEX ".*\.test\.cpp$")
+set(cpython_files ${cpp_and_test_files})
+list(FILTER cpython_files INCLUDE REGEX ".*\.cpython\.cpp$")
 
 
 ## Targets ##
@@ -80,20 +87,24 @@ target_link_libraries(${PROJECT_NAME}
 target_install(${PROJECT_NAME})
 
 ## CPython interface
-add_library(py_${PROJECT_NAME} SHARED "${src_dir}/interop/py_${PROJECT_NAME}.cpp")
-target_link_libraries(py_${PROJECT_NAME}
+set(cpython_project_name maia_cpython)
+add_library(${cpython_project_name} SHARED ${cpython_files})
+target_link_libraries(${cpython_project_name}
   PUBLIC 
     maia::maia
 )
 set_target_properties(
-  py_${PROJECT_NAME}
+  ${cpython_project_name}
   PROPERTIES
     PREFIX ""
-    OUTPUT_NAME "${PROJECT_NAME}"
+    OUTPUT_NAME "${cpython_project_name}"
     LINKER_LANGUAGE C
 )
-install(TARGETS py_${PROJECT_NAME} EXPORT py_${PROJECT_NAME}Targets
+install(TARGETS ${cpython_project_name} EXPORT ${cpython_project_name}Targets
   LIBRARY DESTINATION py
+)
+install(FILES ${python_files}
+  DESTINATION py
 )
 
 ## Unit tests ##

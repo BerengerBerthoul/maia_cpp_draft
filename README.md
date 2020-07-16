@@ -4,7 +4,9 @@ Maia
 `Maia` provides algorithms and manipulations over CGNS meshes.
 
 ## Dependencies ##
-`Maia` is a C++17 library. The build process requires GCC>=8, Git>=2.14 and Cmake>=3.12. It depends on libraries `project_utils`, `std_e`, `cpp_cgns`, `range-v3` and `doctest` (see section `Build and install`).
+`Maia` is a C++17 and Python3 library. The build process requires GCC>=8, Git>=2.14 and Cmake>=3.12. It depends on libraries `project_utils`, `std_e`, `cpp_cgns`, `range-v3` and `doctest` (see section `Build and install`). 
+
+The Python interface is optional. It requires Python3 and Cassiopee (module "Internal", see http://elsa.onera.fr/Cassiopee/). It wraps some C++ algorithms with CPython.
 
 ## Build and install ##
 1. `git clone https://github.com/BerengerBerthoul/maia`

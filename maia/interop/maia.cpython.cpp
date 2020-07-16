@@ -67,9 +67,9 @@ static PyMethodDef maia_methods[] = {
   {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
-static PyModuleDef maiamodule = {
+static PyModuleDef maia_module = {
   PyModuleDef_HEAD_INIT,
-  "maia", /* name of module */
+  "maia_cpython", /* name of module */
   NULL, /* module documentation, may be NULL */
   -1, /* size of per-interpreter state of the module,
          or -1 if the module keeps state in global variables */
@@ -77,6 +77,6 @@ static PyModuleDef maiamodule = {
 };
 
 PyMODINIT_FUNC
-PyInit_maia(void) {
-  return PyModule_Create(&maiamodule);
+PyInit_maia_cpython(void) {
+  return PyModule_Create(&maia_module);
 }
