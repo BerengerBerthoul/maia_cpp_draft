@@ -333,7 +333,7 @@ convert_to_simple_volume_connectivities(const tree& nfaces, const tree& ngons, I
   auto nface_start = nface_connectivity.data();
   auto polyhedron_type_starts = view_as_span<I4>(get_child_by_name(nfaces,".#PolygonSimpleTypeStart").value);
 
-  auto tetra_range   = std_e::make_span(nface_start+polyhedron_type_starts[0],nface_start+polyhedron_type_starts[1]);
+  auto tetra_range = std_e::make_span(nface_start+polyhedron_type_starts[0],nface_start+polyhedron_type_starts[1]);
   auto pyra_range  = std_e::make_span(nface_start+polyhedron_type_starts[1],nface_start+polyhedron_type_starts[2]);
   auto penta_range = std_e::make_span(nface_start+polyhedron_type_starts[2],nface_start+polyhedron_type_starts[3]);
   auto hexa_range  = std_e::make_span(nface_start+polyhedron_type_starts[3],nface_start+polyhedron_type_starts[4]);
@@ -358,27 +358,36 @@ convert_to_simple_volume_connectivities(const tree& nfaces, const tree& ngons, I
   I4 elt_pool_start = vol_elt_start_id;
   I4 elt_pool_start2 = 1; // TODO FIXME only here as quickfix to parent element starting at 1 and not elt_pool_start (also in apply_nface_permutation_to_parent_elts)
   auto tetra_accessor = cgns::interleaved_nface_random_access_range(tetra_range);
-  elt_pools.push_back(convert_to_tetra(tetra_accessor,ngons,elt_pool_start,elt_pool_start2,F));
-  elt_pool_start += tetra_accessor.size();
-  elt_pool_start2 += tetra_accessor.size();
+  if (tetra_accessor.size()>0) {
+    elt_pools.push_back(convert_to_tetra(tetra_accessor,ngons,elt_pool_start,elt_pool_start2,F));
+    elt_pool_start += tetra_accessor.size();
+    elt_pool_start2 += tetra_accessor.size();
+  }
 
   auto pyra_accessor = cgns::interleaved_nface_random_access_range(pyra_range);
-  elt_pools.push_back(convert_to_pyra(pyra_accessor,ngons,elt_pool_start,elt_pool_start2,F));
-  elt_pool_start += pyra_accessor.size();
-  elt_pool_start2 += pyra_accessor.size();
+  if (pyra_accessor.size()>0) {
+    elt_pools.push_back(convert_to_pyra(pyra_accessor,ngons,elt_pool_start,elt_pool_start2,F));
+    elt_pool_start += pyra_accessor.size();
+    elt_pool_start2 += pyra_accessor.size();
+  }
 
   auto penta_accessor = cgns::interleaved_nface_random_access_range(penta_range);
-  elt_pools.push_back(convert_to_penta(penta_accessor,ngons,elt_pool_start,elt_pool_start2,F));
-  elt_pool_start += penta_accessor.size();
-  elt_pool_start2 += penta_accessor.size();
+  if (penta_accessor.size()>0) {
+    elt_pools.push_back(convert_to_penta(penta_accessor,ngons,elt_pool_start,elt_pool_start2,F));
+    elt_pool_start += penta_accessor.size();
+    elt_pool_start2 += penta_accessor.size();
+  }
 
   auto hexa_accessor = cgns::interleaved_nface_random_access_range(hexa_range);
-  elt_pools.push_back(convert_to_hexa(hexa_accessor,ngons,elt_pool_start,elt_pool_start2,F));
-  elt_pool_start += hexa_accessor.size();
-  elt_pool_start2 += hexa_accessor.size();
+  if (hexa_accessor.size()>0) {
+    elt_pools.push_back(convert_to_hexa(hexa_accessor,ngons,elt_pool_start,elt_pool_start2,F));
+    elt_pool_start += hexa_accessor.size();
+    elt_pool_start2 += hexa_accessor.size();
+  }
 
   return elt_pools;
 }
+
 
 auto
 convert_zone_to_simple_connectivities(tree& z, const factory& F) -> void {
@@ -393,6 +402,14 @@ convert_zone_to_simple_connectivities(tree& z, const factory& F) -> void {
   auto& last_bnd_elt_pool = bnd_elt_pools.back();
   I4 vol_elt_start_id = ElementRange<I4>(last_bnd_elt_pool)[1]+1;
   auto vol_elt_pools = convert_to_simple_volume_connectivities(nfaces,ngons,vol_elt_start_id,F);
+
+  // TODO deallocate if necessary => when is it? for which allocator?
+  // A: it is right to dealloc if OWNED by F
+  //    it is right to NOT dealloc if OWNED by anybody other than F
+  std::string ngons_name = ngons.name;
+  std::string nfaces_name = nfaces.name;
+  F.rm_child_by_name(z,ngons_name);
+  F.rm_child_by_name(z,nfaces_name);
 
   emplace_children(z,std::move(bnd_elt_pools));
   emplace_children(z,std::move(vol_elt_pools));

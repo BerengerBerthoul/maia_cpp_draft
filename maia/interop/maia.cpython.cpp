@@ -42,7 +42,8 @@ convert_to_simple_connectivities(PyObject* self, PyObject* args) {
   cgns::cgns_allocator alloc; // allocates and owns memory
   cgns::convert_to_simple_connectivities(base,cgns::factory(&alloc));
 
-  add_new_nodes_and_ownership(base,alloc,base_pytree);
+  //add_new_nodes_and_ownership(base,alloc,base_pytree);
+  update_and_transfer_ownership(base,alloc,base_pytree);
   Py_INCREF(Py_None); return Py_None;
 }
 

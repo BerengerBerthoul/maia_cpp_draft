@@ -32,8 +32,3 @@ def convert_from_ngon_to_simple_connectivities(t):
   I._fixNGon(t) # reconstruct NFace (TODO add_nfaces [with sign])
   sort_nface_into_simple_connectivities(t)
   convert_to_simple_connectivities(t)
-
-  # TODO remove uneeded nodes
-  I._rmNodesByName(t,"HEXA_8");
-  I._rmNodesByName(t,"NGonElements");
-  I._rmNodesByName(t,"NFaceElements");
