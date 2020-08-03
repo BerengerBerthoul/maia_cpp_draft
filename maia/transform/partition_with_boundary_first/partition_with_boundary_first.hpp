@@ -91,7 +91,7 @@ partition_elements(tree& zone, const factory& F) -> void;
 
 
 auto
-re_number_point_lists(tree& zone, const std_e::span<I4,2>& elt_range, const std::vector<I4>& elements_permutation) -> void;
+re_number_point_lists(tree& zone, const std_e::span<I4,2>& elt_range, const std::vector<I4>& elements_permutation, const std::string& grid_location) -> void;
 
 
 auto

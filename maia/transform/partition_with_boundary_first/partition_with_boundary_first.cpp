@@ -107,43 +107,44 @@ auto
 partition_elements(tree& z, const factory& F) -> void {
   STD_E_ASSERT(z.label=="Zone_t");
   auto elt_pools = get_children_by_label(z,"Elements_t");
-  for (tree& elt_pool : elt_pools) {
-    if (!is_boundary_partitionned_element_pool(elt_pool)) {
-      if (ElementType<I4>(elt_pool)==NGON_n) {
-        auto elts_permutation_0 = sort_ngons_by_nb_vertices(elt_pool);
-        auto elts_permutation_1 = permute_boundary_ngons_at_beginning(elt_pool,F);
+  tree& ngons = element_pool<I4>(z,NGON_n);
+  if (is_boundary_partitionned_element_pool(ngons)) return;
 
-        mark_polygon_groups(elt_pool,F);
+  auto elts_permutation_0 = sort_ngons_by_nb_vertices(ngons);
+  auto elts_permutation_1 = permute_boundary_ngons_at_beginning(ngons,F);
 
-        auto elts_permutation = std_e::compose_permutations(elts_permutation_1,elts_permutation_0); // TODO why do we have to invert?
-        re_number_point_lists(z,ElementRange<I4>(elt_pool),elts_permutation);
-      }
+  mark_polygon_groups(ngons,F);
+
+  auto elts_permutation = std_e::compose_permutations(elts_permutation_1,elts_permutation_0); // TODO why do we have to invert?
+  re_number_point_lists(z,ElementRange<I4>(ngons),elts_permutation,"FaceCenter");
+}
+
+
+auto
+re_number_point_lists(tree& z, const std_e::span<I4,2>& range, const std::vector<I4>& permutation, const std::string& grid_location) -> void {
+  STD_E_ASSERT(z.label=="Zone_t");
+  std_e::interval<I4> elt_interval = {range[0],range[1]+1}; // CGNS ranges are closed, C++ std ranges are semi-open
+
+  for (tree& bc : get_nodes_by_matching(z,"ZoneBC/BC_t")) {
+    tree& pl = get_child_by_name(bc,"PointList");
+    if (GridLocation(bc)==grid_location) {
+      re_number_point_list(pl.value,permutation,elt_interval);
+    }
+  }
+  for (tree& gc : get_nodes_by_matching(z,"ZoneGridConnectivity/GridConnectivity_t")) {
+    tree& pl = get_child_by_name(gc,"PointList");
+    if (GridLocation(gc)==grid_location) {
+      re_number_point_list(pl.value,permutation,elt_interval);
     }
   }
 }
 
 
 auto
-re_number_point_lists(tree& z, const std_e::span<I4,2>& elt_range, const std::vector<I4>& elements_permutation) -> void {
-  STD_E_ASSERT(z.label=="Zone_t");
-  std_e::interval<I4> elt_interval = {elt_range[0],elt_range[1]+1}; // CGNS ranges are closed, C++ std ranges are semi-open
-
-  for (tree& bc : get_nodes_by_matching(z,"ZoneBC/BC_t")) {
-    tree& pl = get_child_by_name(bc,"PointList");
-    re_number_point_list(pl.value,elements_permutation,elt_interval);
-  }
-  for (tree& gc : get_nodes_by_matching(z,"ZoneGridConnectivity/GridConnectivity_t")) {
-    tree& pl = get_child_by_name(gc,"PointList");
-    re_number_point_list(pl.value,elements_permutation,elt_interval);
-  }
-}
-
-
-auto
-re_number_point_list(node_value& point_list, const std::vector<I4>& elts_permutation, std_e::interval<I4> elt_range) -> void {
-  // Precondition: elts_permutation is an index permutation (i.e. sort(permutation) == integer_range(permutation.size()))
+re_number_point_list(node_value& point_list, const std::vector<I4>& permutation, std_e::interval<I4> range) -> void {
+  // Precondition: permutation is an index permutation (i.e. sort(permutation) == integer_range(permutation.size()))
   auto pl = view_as_span<I4>(point_list);
-  update_ids_in_range_after_permutation(pl,elts_permutation,elt_range);
+  update_ids_in_range_after_permutation(pl,permutation,range);
 }
 
 

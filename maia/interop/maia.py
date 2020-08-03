@@ -14,6 +14,17 @@ def apply_to_bases(t,f):
                     " not on a node of type \""+I.getType(t)+"\".")
 
 
+def remove_ghost_info_of_base(b):
+  for z in I.getNodesByType(b,"Zone_t"):
+
+
+def remove_ghost_info(t):
+  apply_to_bases(t,cmaia.remove_ghost_info_of_base)
+
+
+
+
+
 def partition_with_boundary_first(t):
   apply_to_bases(t,cmaia.partition_with_boundary_first)
 
@@ -32,3 +43,4 @@ def convert_from_ngon_to_simple_connectivities(t):
   I._fixNGon(t) # reconstruct NFace (TODO add_nfaces [with sign])
   sort_nface_into_simple_connectivities(t)
   convert_to_simple_connectivities(t)
+

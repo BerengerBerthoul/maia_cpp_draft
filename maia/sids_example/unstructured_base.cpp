@@ -206,6 +206,7 @@ create_Zone1(factory& F) -> tree {
     1,nb_ngons
   );
   emplace_child(ngon_elts,F.newDataArray("ParentElements", view_as_node_value(parent_elts)));
+  emplace_child(zone,std::move(ngon_elts));
 
   return zone;
 }
