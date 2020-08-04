@@ -78,14 +78,10 @@ operator!=(const interleaved_connectivity_iterator<C0,CK>& x, const interleaved_
 }
 
 
-template<class C, class Connectivity_kind>
-// requires C is a Contiguous_range
-// requires method C::data() returning ptr to first element
-// requires I=C::value_type is an integer type
+template<class I, class Connectivity_kind>
 class interleaved_connectivity_range {
   public:
   // type traits
-    using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
@@ -98,13 +94,13 @@ class interleaved_connectivity_range {
   // ctors
     interleaved_connectivity_range() = default;
 
-    interleaved_connectivity_range(C& cs)
-      : cs_ptr(&cs)
+    interleaved_connectivity_range(std_e::span<I> cs)
+      : cs(cs)
     {}
 
   // accessors
     auto memory_length() const -> I {
-      return cs_ptr->size();
+      return cs.size();
     }
 
     auto begin()       ->       iterator { return {data()}; }
@@ -112,29 +108,27 @@ class interleaved_connectivity_range {
     auto end()         ->       iterator { return {data()+memory_length()}; }
     auto end()   const -> const_iterator { return {data()+memory_length()}; }
 
+    auto data()       ->       I* { return cs.data(); }
+    auto data() const -> const I* { return cs.data(); }
+
     auto push_back(const reference c) -> void {
       // requires C is a Container
       auto old_size = memory_length();
-      cs_ptr->resize( old_size + c.memory_length() );
+      cs.resize( old_size + c.memory_length() );
 
-      auto c_position_in_cs = cs_ptr->begin() + old_size;
+      auto c_position_in_cs = cs.begin() + old_size;
       *c_position_in_cs = c.size();
       std::copy(c.begin(),c.end(),c_position_in_cs+1);
     }
-
-    auto data() -> I* {
-      return cs_ptr->data();
-    }
-    auto data() const -> const I* {
-      return cs_ptr->data();
-    }
   private:
-    C* cs_ptr;
+    std_e::span<I> cs;
 };
 
 template<class CK, class C> constexpr auto
 make_interleaved_connectivity_range(C& c) {
-  return interleaved_connectivity_range<std::remove_reference_t<C>,CK>(c);
+  using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
+  std_e::span<I> sp(c.data(),c.size());
+  return interleaved_connectivity_range<I,CK>(sp);
 }
 
 
@@ -178,11 +172,10 @@ class interleaved_connectivity_vertex_iterator {
     int pos;
 };
 
-template<class C, class Connectivity_kind>
+template<class I, class Connectivity_kind>
 class interleaved_connectivity_vertex_range {
   public:
   // type traits
-    using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
@@ -192,26 +185,28 @@ class interleaved_connectivity_vertex_range {
   // ctor
     interleaved_connectivity_vertex_range() = default;
 
-    interleaved_connectivity_vertex_range(C& cs)
-      : cs_ptr(&cs)
+    interleaved_connectivity_vertex_range(std_e::span<I> cs)
+      : cs(cs)
     {}
 
   // accessors
     auto memory_length() const -> I {
-      return cs_ptr->size();
+      return cs.size();
     }
     auto begin()       ->       iterator { return {data()}; }
     auto begin() const -> const_iterator { return {data()}; }
     auto end()         ->       iterator { return {data()+memory_length()}; }
     auto end()   const -> const_iterator { return {data()+memory_length()}; }
 
-    auto data()       ->       I* { return cs_ptr->data(); }
-    auto data() const -> const I* { return cs_ptr->data(); }
+    auto data()       ->       I* { return cs.data(); }
+    auto data() const -> const I* { return cs.data(); }
   private:
-    C* cs_ptr;
+    std_e::span<I> cs;
 };
 
 template<class CK, class C> constexpr auto
 make_interleaved_connectivity_vertex_range(C& c) {
-  return interleaved_connectivity_vertex_range<std::remove_reference_t<C>,CK>(c);
+  using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
+  std_e::span<I> sp(c.data(),c.size());
+  return interleaved_connectivity_vertex_range<I,CK>(sp);
 }

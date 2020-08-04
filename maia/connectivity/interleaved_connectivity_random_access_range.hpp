@@ -4,10 +4,10 @@
 #include "maia/connectivity/interleaved_connectivity_range.hpp"
 
 
-template<class C, class CK, class I = std::remove_const_t<typename C::value_type>> auto
-index_table(interleaved_connectivity_range<C,CK> cs_fwd_accessor) -> std::vector<I> {
-  std::vector<I> idx_table = {0};
-  I idx = 0;
+template<class I, class CK, class I_nc = std::remove_const_t<I>> auto
+index_table(const interleaved_connectivity_range<I,CK>& cs_fwd_accessor) -> std::vector<I_nc> {
+  std::vector<I_nc> idx_table = {0};
+  I_nc idx = 0;
   for (const auto& c : cs_fwd_accessor) {
     idx += 1+c.nb_nodes();
     idx_table.push_back(idx);
@@ -120,19 +120,16 @@ struct std::iterator_traits<interleaved_connectivity_random_access_iterator<I,CK
 // WARNING: due to the heterogeneous structure of the connectivity collection being accessed,
 // random access cannot and does not allow to replace a connectivity by another:
 // only individual vertices can be mutated.
-template<class C, class Connectivity_kind>
-// requires C is a Contiguous_range
-// requires method C::data() returning ptr to first element
-// requires I=C::value_type is an integer type
+template<class I, class Connectivity_kind>
+// requires I is an integer type
 class interleaved_connectivity_random_access_range {
   public:
-    using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
     using I_nc = std::remove_const_t<I>;
 
     using index_type = std::remove_const_t<I>;
     using kind = Connectivity_kind;
 
-    using fwd_accessor_type = interleaved_connectivity_range<C,kind>;
+    using fwd_accessor_type = interleaved_connectivity_range<I,kind>;
     using value_type = typename fwd_accessor_type::value_type;
     using reference = typename fwd_accessor_type::reference;
 
@@ -141,7 +138,7 @@ class interleaved_connectivity_random_access_range {
     using const_iterator = interleaved_connectivity_random_access_iterator<const I,kind>;
 
     interleaved_connectivity_random_access_range() = default;
-    interleaved_connectivity_random_access_range(C& cs)
+    interleaved_connectivity_random_access_range(std_e::span<I> cs)
       : fwd_accessor(cs)
       , idx_table(index_table(fwd_accessor))
     {}
@@ -187,5 +184,7 @@ class interleaved_connectivity_random_access_range {
 
 template<class CK, class C> constexpr auto
 make_interleaved_connectivity_random_access_range(C& c) {
-  return interleaved_connectivity_random_access_range<std::remove_reference_t<C>,CK>(c);
+  using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const
+  std_e::span<I> sp(c.data(),c.size());
+  return interleaved_connectivity_random_access_range<I,CK>(c);
 }

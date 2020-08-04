@@ -16,29 +16,29 @@ namespace cgns {
 // interleaved (fwd and random access) {
 template<class C> inline auto
 interleaved_ngon_range(C& cs) {
-  return interleaved_connectivity_range<C,maia::interleaved_polygon_kind>(cs);
+  return make_interleaved_connectivity_range<maia::interleaved_polygon_kind>(cs);
 }
 template<class C> inline auto
 interleaved_ngon_random_access_range(C& cs) {
-  return interleaved_connectivity_random_access_range<C,maia::interleaved_polygon_kind>(cs);
+  return make_interleaved_connectivity_random_access_range<maia::interleaved_polygon_kind>(cs);
 }
 
 template<class C> inline auto
 interleaved_nface_range(C& cs) {
-  return interleaved_connectivity_range<C,maia::interleaved_polyhedron_kind>(cs);
+  return make_interleaved_connectivity_range<maia::interleaved_polyhedron_kind>(cs);
 }
 template<class C> inline auto
 interleaved_nface_random_access_range(C& cs) {
-  return interleaved_connectivity_random_access_range<C,maia::interleaved_polyhedron_kind>(cs);
+  return make_interleaved_connectivity_random_access_range<maia::interleaved_polyhedron_kind>(cs);
 }
 
 template<class C> inline auto
 interleaved_mixed_range(C& cs) {
-  return interleaved_connectivity_range<C,mixed_kind>(cs);
+  return make_interleaved_connectivity_range<mixed_kind>(cs);
 }
 template<class C> inline auto
 interleaved_mixed_random_access_range(C& cs) {
-  return interleaved_connectivity_random_access_range<C,mixed_kind>(cs);
+  return make_interleaved_connectivity_random_access_range<mixed_kind>(cs);
 }
 // interleaved }
 

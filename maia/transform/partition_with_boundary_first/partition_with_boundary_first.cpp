@@ -116,7 +116,8 @@ partition_elements(tree& z, const factory& F) -> void {
   mark_polygon_groups(ngons,F);
 
   auto elts_permutation = std_e::compose_permutations(elts_permutation_1,elts_permutation_0); // TODO why do we have to invert?
-  re_number_point_lists(z,ElementRange<I4>(ngons),elts_permutation,"FaceCenter");
+  auto elts_inv_perm = std_e::inverse_permutation(elts_permutation); // TODO what is inverse and what is direct?
+  re_number_point_lists(z,ElementRange<I4>(ngons),elts_inv_perm,"FaceCenter");
 }
 
 

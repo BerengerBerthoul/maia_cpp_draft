@@ -29,16 +29,14 @@ vertex_permutation_to_move_boundary_at_beginning(I nb_of_vertices, const std::ve
 }
 
 
-
-
-
 template<int connectivity_cat, class I> auto
 update_ids_for_elt_type(std::integral_constant<int,connectivity_cat>, tree& elt_pool, const std::vector<I>& vertex_permutation) -> void {
   constexpr auto cat = static_cast<connectivity_category>(connectivity_cat);
   auto vertex_range = connectivity_vertex_range<I,cat>(elt_pool);
 
   I offset = 1; // CGNS ids begin at 1
-  std_e::update_ids_after_permutation(vertex_range,vertex_permutation,offset);
+  auto vertex_inv_perm = std_e::inverse_permutation(vertex_permutation); // TODO what is inverse and what is direct?
+  std_e::update_ids_after_permutation(vertex_range,vertex_inv_perm,offset);
 }
 
 template<class I> auto
