@@ -8,11 +8,11 @@ namespace cgns {
 class factory;
 
 auto
-convert_to_simple_connectivities(tree& b, const factory& F) -> void;
+convert_to_simple_connectivities(tree& b, factory F) -> void;
 
 auto
-sort_nface_into_simple_connectivities(tree& b, const factory& F) -> void;
+sort_nface_into_simple_connectivities(tree& b, factory F) -> void;
 auto
-convert_zone_to_simple_connectivities(tree& z, const factory& F) -> void;
+convert_zone_to_simple_connectivities(tree& z, factory F) -> void;
 
 } // cgns

@@ -15,7 +15,7 @@ namespace cgns {
 
 
 auto
-sort_zone_nface_into_simple_connectivities(tree& z, const factory& F) -> void {
+sort_zone_nface_into_simple_connectivities(tree& z, factory F) -> void {
   tree& ngons = element_pool<I4>(z,NGON_n);
   tree& nfaces = element_pool<I4>(z,NFACE_n);
   I4 partition_penta_start = sort_nfaces_by_simple_polyhedron_type(nfaces,ngons);
@@ -30,7 +30,7 @@ only_contains_tris_and_quads(std_e::span<const I4> polygon_types) -> bool {
    || polygon_types == std::vector{3,4};
 }
 auto
-convert_to_simple_boundary_connectivities(const tree& ngons, const factory& F) -> std::vector<tree> {
+convert_to_simple_boundary_connectivities(const tree& ngons, factory F) -> std::vector<tree> {
   auto ngon_range = ElementRange<I4>(ngons);
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
   auto polygon_types = view_as_span<I4>(get_child_by_name(ngons,".#PolygonTypeBoundary").value);
@@ -88,7 +88,7 @@ find_vertex_not_in_first(const T& connec_0, const T& connec_1) {
 
 
 template<class T> auto
-convert_to_tetra(const T& tetra_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, const factory& F) -> tree {
+convert_to_tetra(const T& tetra_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, factory F) -> tree {
   auto first_ngon_id = ElementRange<I4>(ngons)[0];
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
   auto parent_elts = ParentElements<I4>(ngons);
@@ -125,7 +125,7 @@ convert_to_tetra(const T& tetra_accessor, const tree& ngons, I4 elt_pool_start, 
   );
 }
 template<class T> auto
-convert_to_pyra(const T& pyra_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, const factory& F) -> tree {
+convert_to_pyra(const T& pyra_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, factory F) -> tree {
   auto first_ngon_id = ElementRange<I4>(ngons)[0];
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
   auto parent_elts = ParentElements<I4>(ngons);
@@ -198,7 +198,7 @@ node_above(I4 vtx, const T& quads) -> I4 {
 }
 
 template<class T> auto
-convert_to_penta(const T& penta_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, const factory& F) -> tree {
+convert_to_penta(const T& penta_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, factory F) -> tree {
   auto first_ngon_id = ElementRange<I4>(ngons)[0];
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
   auto parent_elts = ParentElements<I4>(ngons);
@@ -266,7 +266,7 @@ share_vertices(const Connecivity_type_0& c0, const Connecivity_type_1& c1) -> bo
 }
 
 template<class T> auto
-convert_to_hexa(const T& hexa_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, const factory& F) -> tree {
+convert_to_hexa(const T& hexa_accessor, const tree& ngons, I4 elt_pool_start, I4 elt_pool_start2, factory F) -> tree {
   auto first_ngon_id = ElementRange<I4>(ngons)[0];
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
   auto parent_elts = ParentElements<I4>(ngons);
@@ -328,7 +328,7 @@ convert_to_hexa(const T& hexa_accessor, const tree& ngons, I4 elt_pool_start, I4
 }
 
 auto
-convert_to_simple_volume_connectivities(const tree& nfaces, const tree& ngons, I4 vol_elt_start_id, const factory& F) -> std::vector<tree> {
+convert_to_simple_volume_connectivities(const tree& nfaces, const tree& ngons, I4 vol_elt_start_id, factory F) -> std::vector<tree> {
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
   auto nface_start = nface_connectivity.data();
   auto polyhedron_type_starts = view_as_span<I4>(get_child_by_name(nfaces,".#PolygonSimpleTypeStart").value);
@@ -390,7 +390,7 @@ convert_to_simple_volume_connectivities(const tree& nfaces, const tree& ngons, I
 
 
 auto
-convert_zone_to_simple_connectivities(tree& z, const factory& F) -> void {
+convert_zone_to_simple_connectivities(tree& z, factory F) -> void {
   STD_E_ASSERT(z.label=="Zone_t");
 
   sort_zone_nface_into_simple_connectivities(z,F);
@@ -417,12 +417,12 @@ convert_zone_to_simple_connectivities(tree& z, const factory& F) -> void {
 
 
 auto
-sort_nface_into_simple_connectivities(tree& b, const factory& F) -> void {
+sort_nface_into_simple_connectivities(tree& b, factory F) -> void {
   auto f = [&F](tree& z){ sort_zone_nface_into_simple_connectivities(z,F); };
   for_each_unstructured_zone(b,f);
 }
 auto
-convert_to_simple_connectivities(tree& b, const factory& F) -> void {
+convert_to_simple_connectivities(tree& b, factory F) -> void {
   auto f = [&F](tree& z){ convert_zone_to_simple_connectivities(z,F); };
   for_each_unstructured_zone(b,f);
 }

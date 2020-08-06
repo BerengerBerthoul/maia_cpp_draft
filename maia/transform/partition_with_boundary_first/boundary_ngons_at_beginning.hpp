@@ -98,7 +98,7 @@ apply_nface_permutation_to_parent_elts(md_array_view<I,2>& parent_elts, const st
 
 
 inline auto
-mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition_index, const factory& F) -> void {
+mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition_index, factory F) -> void {
   ElementSizeBoundary<I4>(ngons) = partition_index;
 
   node_value part_idx_val = create_node_value_1d({ngon_partition_index},F.alloc());
@@ -108,7 +108,7 @@ mark_as_boundary_partitionned(tree& ngons, I8 partition_index, I8 ngon_partition
 }
 
 template<class T> inline auto
-mark_polygon_groups(const std::string& bnd_or_interior, T& ngon_accessor, const I4* global_start, const factory& F) -> std::vector<tree> {
+mark_polygon_groups(const std::string& bnd_or_interior, T& ngon_accessor, const I4* global_start, factory F) -> std::vector<tree> {
   auto polygon_types = make_cgns_vector<I4>(F.alloc());
   auto polygon_type_starts = make_cgns_vector<I4>(F.alloc());
 
@@ -128,7 +128,7 @@ mark_polygon_groups(const std::string& bnd_or_interior, T& ngon_accessor, const 
   };
 }
 inline auto
-mark_polygon_groups(tree& ngons, const factory& F) -> void {
+mark_polygon_groups(tree& ngons, factory F) -> void {
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);
   auto ngon_start = ngon_connectivity.data();
   auto ngon_size = ngon_connectivity.size();
@@ -144,7 +144,7 @@ mark_polygon_groups(tree& ngons, const factory& F) -> void {
   emplace_children(ngons,mark_polygon_groups("Interior",ngon_interior_accessor,ngon_start,F));
 }
 //auto
-//mark_polyhedron_groups(tree& nfaces, const factory& F) -> void {
+//mark_polyhedron_groups(tree& nfaces, factory F) -> void {
   //auto ngon_connectivity = ElementConnectivity<I4>(nfaces);
 //  auto conn_start = ngon_connectivity.data();
 //  auto nface_accessor = cgns::interleaved_nface_range(ngon_connectivity);
@@ -167,7 +167,7 @@ mark_polygon_groups(tree& ngons, const factory& F) -> void {
 //  emplace_child(nfaces,std::move(pts_node));
 //}
 inline auto
-mark_simple_polyhedron_groups(tree& nfaces, const tree& ngons, I4 penta_start, const factory& F) -> void {
+mark_simple_polyhedron_groups(tree& nfaces, const tree& ngons, I4 penta_start, factory F) -> void {
   // Precondition: nfaces is sorted with tet,pyra,penta,hex; with no other polyhedron type
   auto nface_connectivity = ElementConnectivity<I4>(nfaces);
   auto nface_accessor = cgns::interleaved_nface_random_access_range(nface_connectivity);
@@ -210,7 +210,7 @@ mark_simple_polyhedron_groups(tree& nfaces, const tree& ngons, I4 penta_start, c
 }
 
 inline auto
-permute_boundary_ngons_at_beginning(tree& ngons, const factory& F) -> std::vector<I4> { // TODO find a way to do it for I4 and I8
+permute_boundary_ngons_at_beginning(tree& ngons, factory F) -> std::vector<I4> { // TODO find a way to do it for I4 and I8
   // Precondition: ngons.type = "Elements_t" and elements of type NGON_n
   auto parent_elts = ParentElements<I4>(ngons);
   auto ngon_connectivity = ElementConnectivity<I4>(ngons);

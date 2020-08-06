@@ -34,9 +34,10 @@ update_ids_for_elt_type(std::integral_constant<int,connectivity_cat>, tree& elt_
   constexpr auto cat = static_cast<connectivity_category>(connectivity_cat);
   auto vertex_range = connectivity_vertex_range<I,cat>(elt_pool);
 
+  auto perm_old_to_new = std_e::inverse_permutation(vertex_permutation);
   I offset = 1; // CGNS ids begin at 1
-  auto vertex_inv_perm = std_e::inverse_permutation(vertex_permutation); // TODO what is inverse and what is direct?
-  std_e::update_ids_after_permutation(vertex_range,vertex_inv_perm,offset);
+  std_e::offset_permutation perm(offset,perm_old_to_new);
+  std_e::apply(perm,vertex_range);
 }
 
 template<class I> auto

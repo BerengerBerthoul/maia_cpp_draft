@@ -3,14 +3,10 @@
 
 #include "cpp_cgns/cgns.hpp"
 #include "std_e/future/span.hpp"
-#include "std_e/interval/interval.hpp"
 #include "cpp_cgns/sids/creation.hpp"
 
 
 namespace cgns {
-
-
-struct PointList_info;
 
 
 /**
@@ -59,11 +55,11 @@ Complexity:
     - Algorithms are at most linear time and space in the arrays number of elements.
 */
 auto
-partition_with_boundary_first(tree& b, const factory& F) -> void;
+partition_with_boundary_first(tree& b, factory F) -> void;
 
 
 auto
-partition_zone_with_boundary_first(tree& zone, const factory& F) -> void;
+partition_zone_with_boundary_first(tree& zone, factory F) -> void;
 
 
 auto
@@ -87,39 +83,7 @@ save_partition_point(tree& zone, I4 nb_of_boundary_vertices) -> void;
 
 
 auto
-partition_elements(tree& zone, const factory& F) -> void;
-
-
-auto
-re_number_point_lists(tree& zone, const std_e::span<I4,2>& elt_range, const std::vector<I4>& elements_permutation, const std::string& grid_location) -> void;
-
-
-auto
-register_connectivities_PointList_infos(tree_range& zones) -> std::vector<PointList_info>;
-
-
-auto
-register_PointLists_of_GridConnectivities(tree_range& zones) -> std::vector<PointList_info>;
-
-
-auto
-bind_PointLists_to_their_PointListDonors(std::vector<PointList_info>& pl_infos, tree_range& zones) -> void;
-
-
-auto
-get_PointList_identifier(const node_value& pl) -> I4;
-
-
-auto
-re_number_point_lists_donors(std::vector<PointList_info>& PointList_infos) -> void;
-
-
-auto
-permute_boundary_vertices(node_value& coord, const std::vector<I4>& perm) -> void;
-
-
-auto
-re_number_point_list(node_value& point_list, const std::vector<I4>& elts_permutation, std_e::interval<I4> elt_range) -> void;
+partition_elements(tree& zone, factory F) -> void;
 
 
 } // cgns

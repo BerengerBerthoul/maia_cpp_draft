@@ -5,7 +5,8 @@
 
 namespace cgns {
 
-auto
-remove_ghost_info(tree& b, const factory& F) -> void;
+auto remove_ghost_info(tree& b, factory F) -> void;
+
+auto remove_ghost_info_from_zone(tree& z, factory F) -> void;
 
 } // cgns
