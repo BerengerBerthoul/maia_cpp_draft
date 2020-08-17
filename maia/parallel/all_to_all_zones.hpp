@@ -2,21 +2,23 @@
 
 #include "cpp_cgns/exception.hpp"
 #include <cstddef>
+#include <vector>
+#include "std_e/utils/vector.hpp"
 
 
 template<class T> auto
 multi_serialize(const std::vector<T>& sends) {
   std::vector<std::byte> buf;
-  std::vector<std::int64_t> sizes;
+  std::vector<int> sizes;
   for (const T& send : sends) {
-    std::vector<char> curr_buf = serialize(send);
+    std::vector<std::byte> curr_buf = serialize(send);
     std_e::append(buf,curr_buf);
     sizes.push_back(curr_buf.size());
   }
   return make_pair(buf,sizes);
 }
 template<class T> auto
-multi_serialize(const std::vector<std::byte>& buf; const std::vector<std::int64_t>& sizes) {
+multi_deserialize(const std::vector<std::byte>& buf, const std::vector<int>& sizes) {
   std::vector<T> recv;
   std::byte* pos = buf.data();
   for (auto size : sizes) {
@@ -27,11 +29,11 @@ multi_serialize(const std::vector<std::byte>& buf; const std::vector<std::int64_
 }
 
 template<class T> auto
-all_to_all_zones(const std::vector<T>& sends, const std::vector<I8>& z_dist, MPI_comm comm) {
+all_to_all(const std::vector<T>& sends, MPI_comm comm) {
   
   auto [sendbuf,send_sizes] = multi_serialize(sends);
 
-  std::vector<std::int64_t> recv_sizes;
+  std::vector<int> recv_sizes(std_e::nb_ranks(comm));
   int err0 = MPI_Alltoall(send_sizes.data(), 1, MPI_INT64_T,
                           recv_sizes.data(), 1, MPI_INT64_T, comm);
   if (err0!=0) throw cgns::cgns_exception("MPI error "+std::to_string(err0)+" in function \"all_to_all_zones\"");
