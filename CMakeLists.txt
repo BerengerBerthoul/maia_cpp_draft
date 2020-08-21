@@ -25,7 +25,7 @@ include(FetchContent)
 FetchContent_Declare(
   doctest
   GIT_REPOSITORY https://github.com/onqtam/doctest.git
-  GIT_TAG        2.3.7
+  GIT_TAG        2.4.0
 )
 FetchContent_GetProperties(doctest)
 if(NOT doctest_POPULATED)
@@ -116,7 +116,7 @@ if(MAIA_ENABLE_TEST)
   include(CTest)
   add_executable(${PROJECT_NAME}_unit_tests
     ${test_files}
-    ${PROJECT_ROOT}/external/project_utils/src/unit_test_main.cpp
+    ${PROJECT_ROOT}/external/project_utils/src/mpi_unit_test_main.cpp
   )
   target_link_libraries(${PROJECT_NAME}_unit_tests
     PUBLIC
