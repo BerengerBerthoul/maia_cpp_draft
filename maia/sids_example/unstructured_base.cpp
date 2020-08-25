@@ -10,7 +10,7 @@ using namespace cgns;
 
 
 auto
-create_GridCoords0(factory& F) -> tree {
+create_GridCoords0(factory F) -> tree {
   auto coord_X = make_cgns_vector(
     { 0.,1.,2.,3.,
       0.,1.,2.,3.,
@@ -45,7 +45,7 @@ create_GridCoords0(factory& F) -> tree {
   return grid_coords;
 }
 auto
-create_GridCoords1(factory& F) -> tree {
+create_GridCoords1(factory F) -> tree {
   auto coord_X = make_cgns_vector(
     { 3.,4.,
       3.,4.,
@@ -78,7 +78,7 @@ create_GridCoords1(factory& F) -> tree {
 
 
 auto
-create_Zone0(factory& F) -> tree {
+create_Zone0(factory F) -> tree {
 /* Mesh used: "six quads", cf. simple_meshes.txt */
   int32_t VertexSize = 24;
   int32_t CellSize = 6;
@@ -152,7 +152,7 @@ create_Zone0(factory& F) -> tree {
 }
 
 auto
-create_Zone1(factory& F) -> tree {
+create_Zone1(factory F) -> tree {
 /* Le maillage utilisé est "one quad", cf. simple_meshes.h */
   int32_t VertexSize = 8;
   int32_t CellSize = 1;
@@ -212,7 +212,7 @@ create_Zone1(factory& F) -> tree {
 }
 
 auto
-create_unstructured_base(factory& F) -> cgns::tree {
+create_unstructured_base(factory F) -> cgns::tree {
   tree b = F.newCGNSBase("Base0",3,3);
   emplace_child(b,create_Zone0(F));
   emplace_child(b,create_Zone1(F));

@@ -5,4 +5,5 @@
 #include "cpp_cgns/sids/creation.hpp"
 
 
-auto create_unstructured_base(cgns::factory F) -> cgns::tree;
+auto
+create_distributed_base(int mpi_rank, cgns::factory F) -> cgns::tree;

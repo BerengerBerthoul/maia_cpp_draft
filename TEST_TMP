@@ -1,0 +1,96 @@
+
+// ------------------------------------------
+// Case :
+proc 0
+/Base/Zone1
+/Base/Zone1/ZGC/j1 --> Zone2
+/Base/Zone1/ZGC/j2 --> Zone1
+/Base/Zone1/ZGC/j3 --> Zone3
+
+proc 1
+/Base/Zone2
+/Base/Zone2/ZGC/j4 --> Zone2
+/Base/Zone2/ZGC/j5 --> Zone1
+/Base/Zone3
+/Base/Zone3/ZGC/j6 --> Zone3
+// ------------------------------------------
+
+
+// ------------------------------------------
+// 1 etape :
+for Zone in I.getZones(PartTree):
+  // --> Ajout de la zone local dans le cgns_registerty
+  ZonePath = BasePath+"/"+Zone[0]
+  cgns_reg.add_path(ZonePath, 'Zone_t')
+
+  for ZGC in ZGCs:
+    ZoneDonorNmae = I.getNodeFromName(...)
+
+    ZoneDonorPath = BasePath+"/"+ZoneDonorName[0]
+    cgns_reg.add_path(ZoneDonorPath, 'Zone_t')
+
+
+// ------------------------------------------
+// Dans cgns_reg on a au final (car on a rentré les gridconnectivit sous forme de Zone_t ):
+proc 0
+/Base/Zone1
+/Base/Zone2
+/Base/Zone3
+
+proc 1
+/Base/Zone2
+/Base/Zone1
+/Base/Zone3
+
+
+// ------------------------------------------
+cgns_reg.generate() // Comment
+// ------------------------------------------
+
+// Du coup on a :proc 0
+/Base/Zone1  --> gId = 1
+/Base/Zone2  --> gId = 2
+/Base/Zone3  --> gId = 3
+
+proc 1
+/Base/Zone2  --> gId = 2
+/Base/Zone1  --> gId = 1
+/Base/Zone3  --> gId = 3
+// ------------------------------------------
+
+
+// ------------------------------------------
+// Maintenant ce qui nous interesse c'est le prod_id donc on fait le pattern de je patarge puis je demande
+Donc on fait un part_to_block avec LNToGN = Uniquement les "vrais" Zone_t
+proc 0 --> LnToGn = {1   }  // size = 1
+proc 1 --> LnToGn = {2, 3}  // size = 2
+
+et part_data :
+proc 0 --> part_data = {0  }    // size = 1
+proc 1 --> part_data = {1,1}    // size = 1
+
+J'ai donc un block_data = [ 0, 1, | 1 ]  le | signifie le knot
+Tableau distribué [0, 2, 3] (size = nproc +1 )
+// ------------------------------------------
+
+// ------------------------------------------
+// Je demande / collect
+Maintenant on doit collecté dans ce block_data les données associés au join :
+Donc on fait un block_to_part avec LNToGN = Uniquement les Zone_t qui sont "Voisines"
+
+proc 0 --> LnToGn = {2, 1, 3}  // size = 3 (car 3 raccords )
+proc 1 --> LnToGn = {2, 1, 3}  // size = 3 (car 3 raccords )
+
+Le resultat sera part_data_recv :
+proc 0 --> part_data_recv = {1, 0, 1}    // size = 3
+proc 1 --> part_data_recv = {1, 0, 1}    // size = 3
+// ------------------------------------------
+
+
+// ------------------------------------------
+// part_to_block [ nGid ] = nGid/nproc -->
+// block_to_part
+// part_to_part (les 2 part sont = )
+// part_to_block_non_uniform ( )
+// pdm_distant_neighbor
+// ------------------------------------------
