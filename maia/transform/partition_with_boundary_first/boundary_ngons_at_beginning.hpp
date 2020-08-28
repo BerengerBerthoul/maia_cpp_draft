@@ -7,7 +7,7 @@
 #include <numeric>
 #include "cpp_cgns/sids/utils.hpp"
 #include "std_e/algorithm/id_permutations.hpp"
-#include "std_e/utils/time_logger.hpp"
+#include "maia/log/log.hpp"
 #include "maia/connectivity_cgns/range.hpp"
 #include "cpp_cgns/sids/Grid_Coordinates_Elements_and_Flow_Solution.hpp"
 #include "cpp_cgns/sids/creation.hpp"
@@ -43,7 +43,7 @@ template<class I> auto
 create_partitionned_ngon_connectivities(std_e::span<I> old_connectivities, const std::vector<I>& permutation, I partition_index)
   -> std::pair<std::vector<I>,I> 
 {
-  std_e::time_logger _("create_partitionned_ngon_connectivities");
+  auto _ = maia_time_log("create_partitionned_ngon_connectivities");
 
   // prepare accessors
   auto old_ngon_accessor = cgns::interleaved_ngon_random_access_range(old_connectivities);
@@ -232,7 +232,7 @@ permute_boundary_ngons_at_beginning(tree& ngons, factory F) -> std::vector<I4> {
 // TODO factor with above, test
 template<class I> auto
 sorting_by_nb_vertices_permutation(std_e::span<I> connectivities) -> std::vector<I> {
-  std_e::time_logger _("sorting_by_nb_vertices_permutation");
+  auto _ = maia_time_log("sorting_by_nb_vertices_permutation");
   auto ngon_accessor = cgns::interleaved_ngon_random_access_range(connectivities);
 
   // init
@@ -251,7 +251,7 @@ template<class I> auto
 create_permuted_ngon_connectivities(std_e::span<I> old_connectivities, const std::vector<I>& permutation)
   -> std::vector<I> 
 {
-  std_e::time_logger _("create_permuted_ngon_connectivities");
+  auto _ = maia_time_log("create_permuted_ngon_connectivities");
 
   // prepare accessors
   auto old_ngon_accessor = cgns::interleaved_ngon_random_access_range(old_connectivities);
@@ -291,7 +291,7 @@ sort_ngons_by_nb_vertices(tree& ngons) -> std::vector<I4> {
 // TODO factor with above, test
 template<class I> auto
 sorting_by_nb_faces_permutation(std_e::span<I> connectivities) -> std::vector<I> {
-  std_e::time_logger _("sorting_by_nb_faces_permutation");
+  auto _ = maia_time_log("sorting_by_nb_faces_permutation");
   auto nface_accessor = cgns::interleaved_nface_random_access_range(connectivities);
 
   // init
@@ -310,7 +310,7 @@ template<class I> auto
 create_permuted_nface_connectivities(std_e::span<I> old_connectivities, const std::vector<I>& permutation)
   -> std::vector<I> 
 {
-  std_e::time_logger _("create_permuted_nface_connectivities");
+  auto _ = maia_time_log("create_permuted_nface_connectivities");
 
   // prepare accessors
   auto old_nface_accessor = cgns::interleaved_nface_random_access_range(old_connectivities);

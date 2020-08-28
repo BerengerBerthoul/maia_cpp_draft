@@ -2,7 +2,7 @@
 
 #include "maia/generate/ngons/from_cells/faces_heterogenous_container.hpp"
 
-#include "std_e/utils/time_logger.hpp"
+#include "maia/log/log.hpp"
 
 
 namespace cgns {
@@ -11,7 +11,7 @@ namespace cgns {
 auto
 create_ngon(const faces_container<std::int32_t>& all_faces, std::int32_t first_ngon_id, factory& F) -> tree {
   using I = std::int32_t;
-  std_e::time_logger _("create_ngon");
+  auto _ = maia_time_log("create_ngon");
   // TODO explicit the fact that get<0> is tris and get<1> is quads
   const auto& bnd_faces_3 = std_e::get<0>(all_faces.boundary);
   const auto& bnd_faces_4 = std_e::get<1>(all_faces.boundary);

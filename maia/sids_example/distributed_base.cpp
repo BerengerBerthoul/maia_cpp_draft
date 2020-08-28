@@ -2,9 +2,11 @@
 
 using namespace cgns;
 
+namespace example {
+
 auto
 create_distributed_base(int mpi_rank, factory F) -> tree {
-  tree b = F.newCGNSBase("cgns_base",3,3);
+  tree b = F.newCGNSBase("Base",3,3);
 
 /* Case (note that GridConnectivities are *not* symmetric:
   proc 0
@@ -75,3 +77,5 @@ create_distributed_base(int mpi_rank, factory F) -> tree {
   }
   return b;
 }
+
+} // example

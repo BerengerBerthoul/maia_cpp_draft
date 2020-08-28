@@ -1,6 +1,6 @@
 #include "maia/transform/partition_with_boundary_first/boundary_vertices_at_beginning.hpp"
 
-#include "std_e/utils/time_logger.hpp"
+#include "maia/log/log.hpp"
 #include "maia/connectivity_cgns/range.hpp"
 #include "std_e/algorithm/id_permutations.hpp"
 #include "range/v3/view/indices.hpp"
@@ -46,7 +46,7 @@ re_number_vertex_ids_in_elements(tree& elt_pool, const std::vector<I>& vertex_pe
   //   - vertex_permutation is an index permutation (i.e. sort(permutation) == std_e::iota(permutation.size()))
   //   - any vertex "v" of "elt_pool" is referenced in "vertex_permutation", 
   //     i.e. vertex_permutation[v-1] is valid ("-1" because of 1-indexing)
-  std_e::time_logger _("re_number_vertex_ids_in_elements");
+  auto _ = maia_time_log("re_number_vertex_ids_in_elements");
 
   auto elt_cat = connectivity_category_of<I>(elt_pool);
 

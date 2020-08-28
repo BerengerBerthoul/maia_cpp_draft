@@ -58,12 +58,12 @@ file(GLOB_RECURSE python_files
   "${src_dir}/*.py"
 )
 set(cpp_files ${cpp_and_test_files})
-list(FILTER cpp_files EXCLUDE REGEX ".*\.test\.cpp$")
-list(FILTER cpp_files EXCLUDE REGEX ".*\.cpython\.cpp$")
+list(FILTER cpp_files EXCLUDE REGEX ".*\\.test\\.cpp$")
+list(FILTER cpp_files EXCLUDE REGEX ".*\\.cpython\\.cpp$")
 set(test_files ${cpp_and_test_files})
-list(FILTER test_files INCLUDE REGEX ".*\.test\.cpp$")
+list(FILTER test_files INCLUDE REGEX ".*\\.test\\.cpp$")
 set(cpython_files ${cpp_and_test_files})
-list(FILTER cpython_files INCLUDE REGEX ".*\.cpython\.cpp$")
+list(FILTER cpython_files INCLUDE REGEX ".*\\.cpython\\.cpp$")
 
 
 ## Targets ##

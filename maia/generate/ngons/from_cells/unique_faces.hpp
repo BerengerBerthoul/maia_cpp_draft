@@ -2,7 +2,7 @@
 
 #include "std_e/algorithm/unique_compress.hpp"
 #include "maia/generate/ngons/from_cells/face_with_parents.hpp"
-#include "std_e/utils/time_logger.hpp"
+//#include "std_e/utils/time_logger.hpp"
 
 #include <algorithm>
 //#include <parallel/algorithm>

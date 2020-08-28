@@ -3,6 +3,10 @@
 #include "cpp_cgns/tree_manip.hpp"
 #include "std_e/utils/vector.hpp"
 #include "std_e/parallel/mpi.hpp"
+#include "std_e/log.hpp"
+#include "std_e/utils/to_string.hpp"
+#include "tmp_cgns/exchange/part_to_block.hpp"
+#include "tmp_cgns/exchange/block_to_part.hpp"
 
 
 namespace cgns {
@@ -30,20 +34,45 @@ paths_of_all_mentionned_zones(const tree& b) -> cgns_paths {
   return z_paths;
 }
 
+//share_then_collect(
+//  MPI_Comm comm, zone_reg.distribution(),
+//)
+
 auto
-zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void {
+zones_registry(const tree& b, MPI_Comm comm) -> label_proc_registry {
   auto paths = paths_of_all_mentionned_zones(b);
-  std::cout << "Paths = " << std_e::to_string(paths) << "\n";
   label_registry zone_reg(paths,comm);
 
-  int test_rank = std_e::rank(comm);
-  int nb = zone_reg.nb_entities();
-  if (test_rank==1) {
-    std::cout << "rank: " << test_rank << " ; nb = " << nb << "\n";
-    for (int i=0; i<nb; ++i) {
-      std::cout << "rank: " << test_rank << " ; nb = " << zone_reg.entities()[i] << " ; id: " << std::to_string(zone_reg.ids()[i]) << "\n";
-    }
+  // share-then-collect pattern
+  std::vector<int> owned_zone_ids;
+  auto zones = get_children_by_label(b,"Zone_t");
+  for (const tree& z : zones) {
+    int z_id = get_global_id_from_path(zone_reg,"/"+b.name+"/"+z.name);
+    owned_zone_ids.push_back(z_id);
   }
+  int nb_zones_on_proc = owned_zone_ids.size();
+
+  part_to_unique_block_protocol ptb_protocol(comm,zone_reg.distribution(),std::move(owned_zone_ids));
+
+  std::vector<int> proc_of_owned_zones(nb_zones_on_proc,std_e::rank(comm));
+  auto proc_of_zones_dist = exchange(ptb_protocol,proc_of_owned_zones);
+
+  const auto& mentionned_zone_ids = zone_reg.ids();
+  block_to_part_protocol btp_protocol(comm,zone_reg.distribution(),mentionned_zone_ids);
+
+  auto proc_of_all_zones = exchange(btp_protocol,proc_of_zones_dist);
+
+  //auto proc_of_mentionned_zones = share_then_collect(
+  //  comm, zone_reg.distribution(), 
+  //  std::move(owned_zone_ids), std::move(mentionned_zone_ids),
+  //  proc_of_owned_zones
+  //);
+
+  return {zone_reg,proc_of_all_zones};
+}
+
+auto
+zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void {
 }
 
 

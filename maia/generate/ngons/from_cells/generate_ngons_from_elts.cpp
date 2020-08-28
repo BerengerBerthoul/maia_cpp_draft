@@ -1,6 +1,6 @@
 #include "maia/generate/ngons/from_cells/generate_ngons_from_elts.hpp"
 
-#include "std_e/utils/time_logger.hpp"
+#include "maia/log/log.hpp"
 #include "cpp_cgns/sids/Hierarchical_Structures.hpp"
 #include "cpp_cgns/sids/Grid_Coordinates_Elements_and_Flow_Solution.hpp"
 #include "cpp_cgns/sids/creation.hpp"
@@ -14,7 +14,7 @@ generate_ngons_from_elts(tree& b, factory& F) -> void {
   STD_E_ASSERT(b.label=="CGNSBase_t");
   for (tree& z : get_children_by_label(b,"Zone_t")) {
     if (is_unstructured_zone(z)) {
-      std_e::time_logger _("Generation of ngons of zone");
+      auto _ = maia_time_log("Generation of ngons of zone");
       auto ngon = generate_ngons_from_elts(get_children_by_label(z,"Elements_t"),F);
       emplace_child(z,std::move(ngon));
     }

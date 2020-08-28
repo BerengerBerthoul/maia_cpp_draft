@@ -6,7 +6,7 @@
 #include "std_e/utils/switch.hpp"
 #include "maia/generate/ngons/from_cells/append_faces_with_parent_id.hpp"
 
-#include "std_e/utils/time_logger.hpp"
+#include "maia/log/log.hpp"
 #include "std_e/base/lift.hpp"
 
 
@@ -44,7 +44,7 @@ template<class Connectivity_type, class I> auto
 // requires I==Connectivity_type::I
 append_faces_from_connectivity_elts(faces_heterogenous_container<I>& faces, const Connectivity_type& elts, I first_elt_id) -> void
 {
-  std_e::time_logger _("append_faces_from_connectivity_elts");
+  auto _ = maia_time_log("append_faces_from_connectivity_elts");
   for (auto elt : elts) {
     append_generated_faces(faces,elt,first_elt_id);
     ++first_elt_id;
