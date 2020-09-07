@@ -22,7 +22,7 @@ create_distributed_base(int mpi_rank, factory F) -> tree {
   /Base/Zone1/ZGC/j4 --> Zone1
   /Base/Zone1/ZGC/j5 --> Zone0
   /Base/Zone2
-  /Base/Zone2/ZGC/j6 --> Zone1
+  /Base/Zone2/ZGC/j6 --> Zone3
 */
 
   if (mpi_rank == 0) {
@@ -62,18 +62,18 @@ create_distributed_base(int mpi_rank, factory F) -> tree {
     emplace_child(zone_gc1,std::move(gc10));
     emplace_child(z1,std::move(zone_gc1));
 
+    emplace_child(b,std::move(z1));
 
   // Zone2
     tree z2 = F.newUnstructuredZone("Zone2");
 
-    tree gc21 = F.newGridConnectivity("Join6","Zone1","FaceCenter","Abutting1to1");
+    tree gc21 = F.newGridConnectivity("Join6","Zone3","FaceCenter","Abutting1to1");
 
     tree zone_gc2 = F.newZoneGridConnectivity();
     emplace_child(zone_gc2,std::move(gc21));
-    emplace_child(z1,std::move(zone_gc2));
+    emplace_child(z2,std::move(zone_gc2));
 
     emplace_child(b,std::move(z2));
-    emplace_child(b,std::move(z1));
   }
   return b;
 }

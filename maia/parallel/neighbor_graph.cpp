@@ -5,8 +5,7 @@
 #include "std_e/parallel/mpi.hpp"
 #include "std_e/log.hpp"
 #include "std_e/utils/to_string.hpp"
-#include "tmp_cgns/exchange/part_to_block.hpp"
-#include "tmp_cgns/exchange/block_to_part.hpp"
+#include "tmp_cgns/exchange/spread_then_collect.hpp"
 
 
 namespace cgns {
@@ -34,45 +33,60 @@ paths_of_all_mentionned_zones(const tree& b) -> cgns_paths {
   return z_paths;
 }
 
-//share_then_collect(
-//  MPI_Comm comm, zone_reg.distribution(),
-//)
-
+// TODO compressed_vector type instead of vector<vector>
 auto
-zones_registry(const tree& b, MPI_Comm comm) -> label_proc_registry {
+compute_zone_registry(const tree& b, MPI_Comm comm) -> zone_registry {
   auto paths = paths_of_all_mentionned_zones(b);
   label_registry zone_reg(paths,comm);
 
-  // share-then-collect pattern
+  std::vector<std::string> owned_zone_names;
   std::vector<int> owned_zone_ids;
+  std_e::jagged_vector<std::string> neighbor_zone_names;
+  std_e::jagged_vector<int> neighbor_zone_ids;
   auto zones = get_children_by_label(b,"Zone_t");
+  // TODO factorize with above
   for (const tree& z : zones) {
+    owned_zone_names.push_back(z.name);
     int z_id = get_global_id_from_path(zone_reg,"/"+b.name+"/"+z.name);
     owned_zone_ids.push_back(z_id);
+    if (has_child_of_name(z,"ZoneGridConnectivity")) {
+      const tree& zgc = get_child_by_name(z,"ZoneGridConnectivity");
+      auto gcs = get_children_by_label(zgc,"GridConnectivity_t");
+      neighbor_zone_names.push_level();
+      neighbor_zone_ids.push_level();
+      for (const tree& gc : gcs) {
+        std::string opp_zone_name = to_string(value(gc));
+        neighbor_zone_names.push_back(opp_zone_name);
+        int z_id = get_global_id_from_path(zone_reg,"/"+b.name+"/"+opp_zone_name);
+        neighbor_zone_ids.push_back(z_id);
+      }
+    }
   }
+
   int nb_zones_on_proc = owned_zone_ids.size();
-
-  part_to_unique_block_protocol ptb_protocol(comm,zone_reg.distribution(),std::move(owned_zone_ids));
-
   std::vector<int> proc_of_owned_zones(nb_zones_on_proc,std_e::rank(comm));
-  auto proc_of_zones_dist = exchange(ptb_protocol,proc_of_owned_zones);
 
-  const auto& mentionned_zone_ids = zone_reg.ids();
-  block_to_part_protocol btp_protocol(comm,zone_reg.distribution(),mentionned_zone_ids);
 
-  auto proc_of_all_zones = exchange(btp_protocol,proc_of_zones_dist);
+  auto proc_of_neighbor_zones = spread_then_collect(
+    comm, zone_reg.distribution(), 
+    owned_zone_ids, proc_of_owned_zones,
+    neighbor_zone_ids.flat_view()
+  );
 
-  //auto proc_of_mentionned_zones = share_then_collect(
-  //  comm, zone_reg.distribution(), 
-  //  std::move(owned_zone_ids), std::move(mentionned_zone_ids),
-  //  proc_of_owned_zones
-  //);
+  std_e::jagged_vector<int> neighbor_ranks(std::move(proc_of_neighbor_zones),neighbor_zone_names.indices());
 
-  return {zone_reg,proc_of_all_zones};
+  return {
+    owned_zone_names,
+    owned_zone_ids,
+    neighbor_zone_names,
+    neighbor_zone_ids,
+    neighbor_ranks
+  };
 }
 
 auto
 zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void {
+  auto zr = compute_zone_registry(b,comm);
 }
 
 
