@@ -33,19 +33,34 @@ MPI_TEST_CASE("paths_of_all_mentionned_zones",2) {
   MPI_CHECK(1, paths == expected_paths_1);
 }
 
-MPI_TEST_CASE("zone_registry",2) {
+MPI_TEST_CASE("zone_procs",2) {
   cgns_allocator alloc; // allocates and owns memory
   factory F(&alloc);
   cgns::tree b = example::create_distributed_base(test_rank,F);
 
-  zone_registry zr = cgns::compute_zone_registry(b,test_comm);
-  
-  MPI_CHECK(0, zr.names == vector<string>{"Zone0","Zone3"} );
-  MPI_CHECK(0, zr.neighbor_names == std_e::jagged_vector<string>{{"Zone0","Zone1"},{"Zone1","Zone1"}} );
-  MPI_CHECK(0, zr.neighbor_ranks == std_e::jagged_vector< int  >{{   0   ,   1   },{   1   ,   1   }} );
-  MPI_CHECK(1, zr.names == vector<string>{"Zone1","Zone2"} );
-  MPI_CHECK(1, zr.neighbor_names == std_e::jagged_vector<string>{{"Zone1","Zone0"},{"Zone3"}} );
-  MPI_CHECK(1, zr.neighbor_ranks == std_e::jagged_vector< int  >{{   1   ,   0   },{   0   }} );
+  zone_procs zp = cgns::compute_zone_procs(b,test_comm);
+
+  MPI_CHECK(0, zp.names == vector<string>{"Zone0","Zone1","Zone3"} );
+  MPI_CHECK(0, zp.procs == vector< int  >{   0   ,   1   ,   0   } );
+  MPI_CHECK(1, zp.names == vector<string>{"Zone0","Zone1","Zone2","Zone3"} );
+  MPI_CHECK(1, zp.procs == vector< int  >{   0   ,   1   ,   1   ,   0   } );
+}
+MPI_TEST_CASE("connectivity_infos",2) {
+  cgns_allocator alloc; // allocates and owns memory
+  factory F(&alloc);
+  cgns::tree b = example::create_distributed_base(test_rank,F);
+
+  std::vector<connectivity_info> cis = cgns::create_connectivity_infos(b);
+
+  MPI_CHECK(0, cis.size() == 4 );
+  MPI_CHECK(0, cis[0].zone_name == "Zone0" ); MPI_CHECK(0, cis[0].zone_donor_name == "Zone0" );
+  MPI_CHECK(0, cis[1].zone_name == "Zone0" ); MPI_CHECK(0, cis[1].zone_donor_name == "Zone1" );
+  MPI_CHECK(0, cis[2].zone_name == "Zone3" ); MPI_CHECK(0, cis[2].zone_donor_name == "Zone1" );
+  MPI_CHECK(0, cis[3].zone_name == "Zone3" ); MPI_CHECK(0, cis[3].zone_donor_name == "Zone1" );
+  MPI_CHECK(1, cis.size() == 3 );
+  MPI_CHECK(1, cis[0].zone_name == "Zone1" ); MPI_CHECK(1, cis[0].zone_donor_name == "Zone1" );
+  MPI_CHECK(1, cis[1].zone_name == "Zone1" ); MPI_CHECK(1, cis[1].zone_donor_name == "Zone0" );
+  MPI_CHECK(1, cis[2].zone_name == "Zone2" ); MPI_CHECK(1, cis[2].zone_donor_name == "Zone3" );
 }
 
 
