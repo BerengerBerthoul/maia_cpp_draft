@@ -24,7 +24,7 @@ name_of_zones(const tree& b) -> std::vector<std::string> {
 }
 
 auto
-name_of_all_mentionned_zones(const tree& b) -> std::vector<std::string> {
+name_of_mentionned_zones(const tree& b) -> std::vector<std::string> {
   STD_E_ASSERT(b.label=="CGNSBase_t");
   auto zones = get_children_by_label(b,"Zone_t");
 
@@ -67,15 +67,18 @@ create_connectivity_infos(tree& b) -> std::vector<connectivity_info> {
 
 auto
 paths_of_all_mentionned_zones(const tree& b) -> cgns_paths {
+  auto all_z_names = std_e::concatenate(name_of_zones(b),name_of_mentionned_zones(b));
+  std_e::sort_unique(all_z_names);
+
   cgns_paths z_paths;
-  for (const auto& z_name : name_of_all_mentionned_zones(b)) {
+  for (const auto& z_name : all_z_names) {
     z_paths.push_back("/"+b.name+"/"+z_name);
   }
   return z_paths;
 }
 
 auto
-compute_zone_procs(const tree& b, MPI_Comm comm) -> zone_procs {
+compute_neighbor_zones(const tree& b, MPI_Comm comm) -> neighbor_zones {
   auto paths = paths_of_all_mentionned_zones(b);
   label_registry zone_reg(paths,comm);
 
@@ -86,28 +89,28 @@ compute_zone_procs(const tree& b, MPI_Comm comm) -> zone_procs {
     owned_zone_ids[i] = get_global_id_from_path(zone_reg,"/"+b.name+"/"+owned_zone_names[i]);
   }
 
-  auto zone_names = name_of_all_mentionned_zones(b);
-  int nb_zones = zone_names.size();
-  std::vector<int> zone_ids(nb_zones);
-  for (int i=0; i<nb_zones; ++i) {
-    zone_ids[i] = get_global_id_from_path(zone_reg,"/"+b.name+"/"+zone_names[i]);
+  auto neighbor_zone_names = name_of_mentionned_zones(b);
+  int nb_neighbor_zones = neighbor_zone_names.size();
+  std::vector<int> neighbor_zone_ids(nb_neighbor_zones);
+  for (int i=0; i<nb_neighbor_zones; ++i) {
+    neighbor_zone_ids[i] = get_global_id_from_path(zone_reg,"/"+b.name+"/"+neighbor_zone_names[i]);
   }
 
-  std::vector<int> proc_of_owned_zones(nb_zones,std_e::rank(comm));
+  std::vector<int> proc_of_owned_zones(nb_owned_zones,std_e::rank(comm));
 
-  auto proc_of_zones = spread_then_collect(
+  auto proc_of_neighbor_zones = spread_then_collect(
     comm, zone_reg.distribution(), 
     owned_zone_ids, proc_of_owned_zones,
-    zone_ids
+    neighbor_zone_ids
   );
 
-  return {std::move(zone_names),std::move(zone_ids),std::move(proc_of_zones)};
+  return {std::move(neighbor_zone_names),std::move(neighbor_zone_ids),std::move(proc_of_neighbor_zones)};
 }
 
-auto
-zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void {
-  auto zr = compute_zone_procs(b,comm);
-}
+//auto
+//zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void {
+//  auto zr = compute_neighbor_zones(b,comm);
+//}
 
 
 } // cgns
