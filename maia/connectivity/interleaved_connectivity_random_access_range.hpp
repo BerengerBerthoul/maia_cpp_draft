@@ -182,6 +182,10 @@ class interleaved_connectivity_random_access_range {
     std::vector<I_nc> idx_table;
 };
 
+template<class CK, class I> constexpr auto
+make_interleaved_connectivity_random_access_range(std_e::span<I> sp) {
+  return interleaved_connectivity_random_access_range<I,CK>(sp);
+}
 template<class CK, class C> constexpr auto
 make_interleaved_connectivity_random_access_range(C& c) {
   using I = std_e::add_other_type_constness<typename C::value_type,C>; // If the range is const, then make the content const

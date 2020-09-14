@@ -67,6 +67,39 @@ MPI_TEST_CASE("connectivity_infos",2) {
 }
 
 
+auto
+all_to_all_3(auto& neighbor_data_indices, const auto& sorted_neighbor_rank_start, const auto& pld_cat, MPI_Comm dist_comm) -> jagged_vector<int,3> {
+  //ELOG(nb_procs+1);
+  //ELOG(sorted_neighbor_rank_start.size());
+  int nb_procs = sorted_neighbor_rank_start.size()-1;
+  std::vector<int> proc_data_indices(nb_procs+1);
+  for (int i=0; i<nb_procs+1; ++i) {
+    proc_data_indices[i] = neighbor_data_indices[sorted_neighbor_rank_start[i]];
+  }
+
+  for (int i=0; i<nb_procs; ++i) {
+    int off = neighbor_data_indices[sorted_neighbor_rank_start[i]];
+    for (int j=sorted_neighbor_rank_start[i]; j<sorted_neighbor_rank_start[i+1]; ++j) {
+      neighbor_data_indices[j] -= off;
+    }
+  }
+
+  jagged_vector<int> xx(neighbor_data_indices,sorted_neighbor_rank_start);
+  auto recv = neighbor_all_to_all_v(xx,dist_comm);
+  jagged_vector<int> yy(pld_cat,proc_data_indices);
+  auto recvy = neighbor_all_to_all_v(yy,dist_comm);
+
+  for (int i=0; i<nb_procs; ++i) {
+    int off = recvy.indices()[recv.indices()[i]];
+    for (int j=recv.indices()[i]; j<recv.indices()[i+1]; ++j) {
+      recv.flat_ref()[j] += off;
+    }
+  }
+  recv.flat_ref().push_back(recvy.indices().back());
+
+
+  return {std::move(recvy.flat_ref()),std::move(recvy.indices()),std::move(recv.flat_ref())};
+}
 
 
 class zone_exchange {
@@ -142,43 +175,14 @@ class zone_exchange {
         cur += pld_span.size();
       }
       neighbor_data_indices.push_back(cur);
-      int nb_procs = ranks.size();
-      std::vector<int> proc_data_indices(nb_procs+1);
-      for (int i=0; i<nb_procs+1; ++i) {
-        proc_data_indices[i] = neighbor_data_indices[sorted_neighbor_rank_start[i]];
-      }
-
-      for (int i=0; i<nb_procs; ++i) {
-        int off = neighbor_data_indices[sorted_neighbor_rank_start[i]];
-        for (int j=sorted_neighbor_rank_start[i]; j<sorted_neighbor_rank_start[i+1]; ++j) {
-          neighbor_data_indices[j] -= off;
-        }
-      }
-
-      jagged_vector<int> xx(neighbor_data_indices,sorted_neighbor_rank_start);
-      auto recv = neighbor_all_to_all_v2(xx,dist_comm);
-      jagged_vector<int> yy(pld_cat,proc_data_indices);
-      auto recvy = neighbor_all_to_all_v2(yy,dist_comm);
-
-      for (int i=0; i<nb_procs; ++i) {
-        int off = recvy.indices()[recv.indices()[i]];
-        for (int j=recv.indices()[i]; j<recv.indices()[i+1]; ++j) {
-          recv.flat_ref()[j] += off;
-        }
-      }
-      recv.flat_ref().push_back(recvy.indices().back());
+      // BEG
+      //jagged(pld_cat,sorted_neighbor_rank_start,neighbor_data_indices);
+      auto pl_data = all_to_all_3(neighbor_data_indices,sorted_neighbor_rank_start,pld_cat,dist_comm);
+      // END
 
       jagged_vector<int> yx(z_ids,sorted_neighbor_rank_start);
-      auto target_z_ids = neighbor_all_to_all_v2(yx,dist_comm);
-      std::vector<std::string> target_z_names(target_z_ids.flat_view().size());
-      std::transform(
-        begin(target_z_ids.flat_view()),end(target_z_ids.flat_view()),
-        begin(target_z_names),
-        [this](int z_id){ return find_name_from_id(this->nzs,z_id); }
-      );
-      jagged_vector<std::string> target_names(std::move(target_z_names),target_z_ids.indices());
-
-      jagged_vector<int,3> pl_data(std::move(recvy.flat_ref()),std::move(recvy.indices()),std::move(recv.flat_ref()));
+      auto target_z_ids = neighbor_all_to_all_v(yx,dist_comm);
+      jagged_vector<std::string> target_names = std_e::transform(target_z_ids,[this](int z_id){ return find_name_from_id(this->nzs,z_id); });
 
       return std::make_tuple(neighbor_ranks,target_names,pl_data);
     }
