@@ -7,7 +7,7 @@
 #include "std_e/parallel/dist_graph.hpp" // TODO MOVE
 #include "std_e/log.hpp" // TODO MOVE
 #include "cpp_cgns/tree_manip.hpp" // TODO MOVE
-#include "std_e/algorithm/mismatch_points.hpp"
+#include "std_e/algorithm/partition_sort.hpp"
 
 using namespace cgns;
 using namespace std;
@@ -135,7 +135,10 @@ class zone_exchange {
       return std::make_tuple(neighbor_ranks,target_names,pl_data);
     }
 
-    //owner_to_neighbor()
+    auto
+    point_list_owner_to_neighbor(jagged_vector<int,3> pl_owner_data) -> void {
+
+    }
 
 };
 MPI_TEST_CASE("point_list_neighbor_to_owner",2) {
@@ -163,36 +166,47 @@ MPI_TEST_CASE("point_list_neighbor_to_owner",2) {
   MPI_CHECK( 1 , target_zone_names[1] == vector<string>{"Zone1","Zone1","Zone1"} );
   MPI_CHECK( 1 , pl_owner_data[1] == jagged_vector<int>{{11,12,13,14},{15},{16,17}} );
 }
-//MPI_TEST_CASE("point_list_owner_to_neighbor",2) {
-//  cgns_allocator alloc; // allocates and owns memory
-//  factory F(&alloc);
-//  auto b = example::create_distributed_base(test_rank,F);
-//
-//  zone_exchange ze(b,test_comm);
-//
-//  jagged_vector<int> neighbor_ranks;
-//  jagged_vector<std::string> target_zone_names;
-//  jagged_vector<int,3> pl_owner_data;
-//  if (test_rank==0) {
-//
-//  } else if (
-//
-//  auto [neighbor_ranks,target_zone_names,pl_owner_data] = ze.point_list_neighbor_to_owner();
-//
-//  MPI_CHECK( 0 , neighbor_ranks[0] == 0 );
-//  MPI_CHECK( 0 , target_zone_names[0] == vector<string>{"Zone0"} );
-//  MPI_CHECK( 0 , pl_owner_data[0] == jagged_vector<int>{{1,2,3}} );
-//
-//  MPI_CHECK( 0 , neighbor_ranks[1] == 1 );
-//  MPI_CHECK( 0 , target_zone_names[1] == vector<string>{"Zone0","Zone3"} );
-//  MPI_CHECK( 0 , pl_owner_data[1] == jagged_vector<int>{{111,112},{136,137}} );
-//
-//
-//  MPI_CHECK( 1 , neighbor_ranks[0] == 1 );
-//  MPI_CHECK( 1 , target_zone_names[0] == vector<string>{"Zone1"} );
-//  MPI_CHECK( 1 , pl_owner_data[0] == jagged_vector<int>{{101,102,103,104}} );
-//
-//  MPI_CHECK( 1 , neighbor_ranks[1] == 0 );
-//  MPI_CHECK( 1 , target_zone_names[1] == vector<string>{"Zone1","Zone1","Zone1"} );
-//  MPI_CHECK( 1 , pl_owner_data[1] == jagged_vector<int>{{11,12,13,14},{15},{16,17}} );
-//}
+
+
+MPI_TEST_CASE("point_list_owner_to_neighbor",2) {
+  cgns_allocator alloc; // allocates and owns memory
+  factory F(&alloc);
+  auto b = example::create_distributed_base(test_rank,F);
+
+  zone_exchange ze(b,test_comm);
+
+  vector<int> neighbor_ranks;
+  jagged_vector<std::string> target_zone_names;
+  jagged_vector<int,3> pl_owner_data;
+  if (test_rank==0) {
+    neighbor_ranks = {0,1};
+    target_zone_names = {{"Zone0"},{"Zone0","Zone3"}};
+    pl_owner_data = {{{100,200,300}},{{11100,11200},{13600,13700}}};
+  } 
+  if (test_rank==1) {
+    neighbor_ranks = {1,0};
+    target_zone_names = {{"Zone1"},{"Zone1","Zone1","Zone1"}};
+    pl_owner_data = {{{10100,10200,10300,10400}},{{1100,1200,1300,1400},{1500},{1600,1700}}};
+  }
+
+  ze.point_list_owner_to_neighbor(pl_owner_data);
+
+  if (test_rank==0) {
+    auto pl_join0 = view_as_span<I4>(get_node_by_matching(b,"Zone0/ZoneGridConnectivity/Join0/PointListDonor").value);
+    auto pl_join1 = view_as_span<I4>(get_node_by_matching(b,"Zone0/ZoneGridConnectivity/Join1/PointListDonor").value);
+    auto pl_join2 = view_as_span<I4>(get_node_by_matching(b,"Zone3/ZoneGridConnectivity/Join2/PointListDonor").value);
+    auto pl_join3 = view_as_span<I4>(get_node_by_matching(b,"Zone3/ZoneGridConnectivity/Join3/PointListDonor").value);
+    MPI_CHECK( 0 , pl_join0 == vector{100,200,300} );
+    MPI_CHECK( 0 , pl_join1 == vector{1100,1200,1300,1400} );
+    MPI_CHECK( 0 , pl_join2 == vector{1500} );
+    MPI_CHECK( 0 , pl_join3 == vector{1600,1700} );
+  }
+  if (test_rank==1) {
+    auto pl_join4 = view_as_span<I4>(get_node_by_matching(b,"Zone1/ZoneGridConnectivity/Join4/PointListDonor").value);
+    auto pl_join5 = view_as_span<I4>(get_node_by_matching(b,"Zone1/ZoneGridConnectivity/Join5/PointListDonor").value);
+    auto pl_join6 = view_as_span<I4>(get_node_by_matching(b,"Zone2/ZoneGridConnectivity/Join6/PointListDonor").value);
+    MPI_CHECK( 1 , pl_join4 == vector{10100,10200,10300,10400} );
+    MPI_CHECK( 1 , pl_join5 == vector{11100,11200} );
+    MPI_CHECK( 1 , pl_join6 == vector{13600,13700} );
+  }
+}
