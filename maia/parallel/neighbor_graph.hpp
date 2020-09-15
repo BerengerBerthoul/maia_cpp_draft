@@ -34,6 +34,12 @@ struct connectivity_info {
   std::string zone_donor_name;
   tree* node;
 };
+auto
+find_donor_proc(const connectivity_info& x, const neighbor_zones& nzs) -> int {
+  auto it = std::find(begin(nzs.names),end(nzs.names),x.zone_donor_name);
+  int idx = it-begin(nzs.names);
+  return nzs.procs[idx];
+}
 
 
 auto

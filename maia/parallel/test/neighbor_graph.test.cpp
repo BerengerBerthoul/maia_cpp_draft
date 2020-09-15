@@ -67,40 +67,7 @@ MPI_TEST_CASE("connectivity_infos",2) {
 }
 
 
-auto
-all_to_all_3(auto& neighbor_data_indices, const auto& sorted_neighbor_rank_start, const auto& pld_cat, MPI_Comm dist_comm) -> jagged_vector<int,3> {
-  //ELOG(nb_procs+1);
-  //ELOG(sorted_neighbor_rank_start.size());
-  int nb_procs = sorted_neighbor_rank_start.size()-1;
-  std::vector<int> proc_data_indices(nb_procs+1);
-  for (int i=0; i<nb_procs+1; ++i) {
-    proc_data_indices[i] = neighbor_data_indices[sorted_neighbor_rank_start[i]];
-  }
-
-  for (int i=0; i<nb_procs; ++i) {
-    int off = neighbor_data_indices[sorted_neighbor_rank_start[i]];
-    for (int j=sorted_neighbor_rank_start[i]; j<sorted_neighbor_rank_start[i+1]; ++j) {
-      neighbor_data_indices[j] -= off;
-    }
-  }
-
-  jagged_vector<int> xx(neighbor_data_indices,sorted_neighbor_rank_start);
-  auto recv = neighbor_all_to_all_v(xx,dist_comm);
-  jagged_vector<int> yy(pld_cat,proc_data_indices);
-  auto recvy = neighbor_all_to_all_v(yy,dist_comm);
-
-  for (int i=0; i<nb_procs; ++i) {
-    int off = recvy.indices()[recv.indices()[i]];
-    for (int j=recv.indices()[i]; j<recv.indices()[i+1]; ++j) {
-      recv.flat_ref()[j] += off;
-    }
-  }
-  recv.flat_ref().push_back(recvy.indices().back());
-
-
-  return {std::move(recvy.flat_ref()),std::move(recvy.indices()),std::move(recv.flat_ref())};
-}
-
+#include "std_e/utils/functional.hpp"
 
 class zone_exchange {
   private:
@@ -108,9 +75,7 @@ class zone_exchange {
     std::vector<int> ranks;
     MPI_Comm dist_comm;
     MPI_Comm owner_to_neighbor_comm;
-    std::vector<int> sorted_neighbor_rank_indices;
-    std::vector<int> sorted_neighbor_rank_start;
-    std::vector<connectivity_info> cis;
+    jagged_vector<connectivity_info> cis;
     std::vector<int> neighbor_ranks;
   public:
     zone_exchange(tree& b, MPI_Comm comm)
@@ -122,24 +87,11 @@ class zone_exchange {
 
       dist_comm = std_e::dist_graph_create(comm,ranks);
 
-      cis = cgns::create_connectivity_infos(b);
-      int nb_neighbor_zones = cis.size();
-      std::vector<int> donor_zone_procs(nb_neighbor_zones);
-      for (int i=0; i<nb_neighbor_zones; ++i) {
-        auto it = std::find(begin(nzs.names),end(nzs.names),cis[i].zone_donor_name);
-        int idx = it-begin(nzs.names);
-        donor_zone_procs[i] = nzs.procs[idx];
-      }
-      sorted_neighbor_rank_indices = std_e::sort_permutation(donor_zone_procs);
-
-      sorted_neighbor_rank_start = std_e::mismatch_indices(
-        sorted_neighbor_rank_indices,
-        [&donor_zone_procs](int i, int j){ return donor_zone_procs[i] == donor_zone_procs[j]; }
-      );
-      sorted_neighbor_rank_start.push_back(sorted_neighbor_rank_indices.size());
+      auto cis_ = cgns::create_connectivity_infos(b);
+      cis = sort_into_partitions(std::move(cis_),[&](const auto& ci){ return find_donor_proc(ci,nzs); });
 
       // neighbor_ranks {
-      int nb_neighbor_procs = sorted_neighbor_rank_start.size()-1;
+      int nb_neighbor_procs = cis.size();
       std::vector<int> procs(nb_neighbor_procs,std_e::rank(dist_comm));
       neighbor_ranks = neighbor_all_to_all(procs,dist_comm);
 
@@ -154,33 +106,29 @@ class zone_exchange {
 
     auto
     point_list_neighbor_to_owner() {
-      // TODO  use jagged_array<3>
       std::vector<I4> pld_cat;
       std::vector<int> neighbor_data_indices;
       std::vector<int> z_ids;
-      std::vector<char> z_names2;
       int cur = 0;
-      for (int i : sorted_neighbor_rank_indices) {
-        tree& gc = *cis[i].node;
+      for (const auto& ci : cis.flat_view()) {
+        tree& gc = *ci.node;
         tree& pld = get_child_by_name(gc,"PointListDonor");
         auto pld_span = view_as_span<I4>(pld.value);
         std_e::append(pld_cat,pld_span);
-        neighbor_data_indices.push_back(cur);
 
-        const std::string& z_name = cis[i].zone_donor_name;
+        neighbor_data_indices.push_back(cur);
+        cur += pld_span.size();
+
+        const std::string& z_name = ci.zone_donor_name;
         int z_id = find_id_from_name(nzs,z_name);
         z_ids.push_back(z_id);
-        z_names2.push_back(z_name.back());
-
-        cur += pld_span.size();
       }
       neighbor_data_indices.push_back(cur);
-      // BEG
-      //jagged(pld_cat,sorted_neighbor_rank_start,neighbor_data_indices);
-      auto pl_data = all_to_all_3(neighbor_data_indices,sorted_neighbor_rank_start,pld_cat,dist_comm);
-      // END
 
-      jagged_vector<int> yx(z_ids,sorted_neighbor_rank_start);
+      jagged_vector<int,3> pl_data_from(std::move(pld_cat),std::move(neighbor_data_indices),cis.indices());
+      auto pl_data = neighbor_all_to_all_v(pl_data_from,dist_comm);
+
+      jagged_vector<int> yx(z_ids,cis.indices());
       auto target_z_ids = neighbor_all_to_all_v(yx,dist_comm);
       jagged_vector<std::string> target_names = std_e::transform(target_z_ids,[this](int z_id){ return find_name_from_id(this->nzs,z_id); });
 
@@ -190,7 +138,7 @@ class zone_exchange {
     //owner_to_neighbor()
 
 };
-MPI_TEST_CASE("zones_neighborhood_graph",2) {
+MPI_TEST_CASE("point_list_neighbor_to_owner",2) {
   cgns_allocator alloc; // allocates and owns memory
   factory F(&alloc);
   auto b = example::create_distributed_base(test_rank,F);
@@ -215,6 +163,36 @@ MPI_TEST_CASE("zones_neighborhood_graph",2) {
   MPI_CHECK( 1 , target_zone_names[1] == vector<string>{"Zone1","Zone1","Zone1"} );
   MPI_CHECK( 1 , pl_owner_data[1] == jagged_vector<int>{{11,12,13,14},{15},{16,17}} );
 }
-//MPI_TEST_CASE("neighbor_zone_graph - non-symmetric",2) {
-//  auto b = create_3_connected_zones(test_rank);
+//MPI_TEST_CASE("point_list_owner_to_neighbor",2) {
+//  cgns_allocator alloc; // allocates and owns memory
+//  factory F(&alloc);
+//  auto b = example::create_distributed_base(test_rank,F);
+//
+//  zone_exchange ze(b,test_comm);
+//
+//  jagged_vector<int> neighbor_ranks;
+//  jagged_vector<std::string> target_zone_names;
+//  jagged_vector<int,3> pl_owner_data;
+//  if (test_rank==0) {
+//
+//  } else if (
+//
+//  auto [neighbor_ranks,target_zone_names,pl_owner_data] = ze.point_list_neighbor_to_owner();
+//
+//  MPI_CHECK( 0 , neighbor_ranks[0] == 0 );
+//  MPI_CHECK( 0 , target_zone_names[0] == vector<string>{"Zone0"} );
+//  MPI_CHECK( 0 , pl_owner_data[0] == jagged_vector<int>{{1,2,3}} );
+//
+//  MPI_CHECK( 0 , neighbor_ranks[1] == 1 );
+//  MPI_CHECK( 0 , target_zone_names[1] == vector<string>{"Zone0","Zone3"} );
+//  MPI_CHECK( 0 , pl_owner_data[1] == jagged_vector<int>{{111,112},{136,137}} );
+//
+//
+//  MPI_CHECK( 1 , neighbor_ranks[0] == 1 );
+//  MPI_CHECK( 1 , target_zone_names[0] == vector<string>{"Zone1"} );
+//  MPI_CHECK( 1 , pl_owner_data[0] == jagged_vector<int>{{101,102,103,104}} );
+//
+//  MPI_CHECK( 1 , neighbor_ranks[1] == 0 );
+//  MPI_CHECK( 1 , target_zone_names[1] == vector<string>{"Zone1","Zone1","Zone1"} );
+//  MPI_CHECK( 1 , pl_owner_data[1] == jagged_vector<int>{{11,12,13,14},{15},{16,17}} );
 //}
