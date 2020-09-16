@@ -78,7 +78,7 @@ paths_of_all_mentionned_zones(const tree& b) -> cgns_paths {
 }
 
 auto
-compute_neighbor_zones(const tree& b, MPI_Comm comm) -> neighbor_zones {
+compute_neighbor_zones(const tree& b, MPI_Comm comm) -> neighbor_zones { // TODO rename mentionned_zones
   auto paths = paths_of_all_mentionned_zones(b);
   label_registry zone_reg(paths,comm);
 
