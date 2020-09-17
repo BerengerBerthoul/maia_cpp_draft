@@ -11,9 +11,9 @@
 namespace cgns {
 
 auto
-remove_ghost_info(tree& b, factory F) -> void {
+remove_ghost_info(tree& b, factory F, MPI_Comm comm) -> void {
   STD_E_ASSERT(b.label=="CGNSBase_t");
-  apply_base_renumbering(b,F,remove_ghost_info_from_zone);
+  //apply_base_renumbering(b,F,remove_ghost_info_from_zone,comm);
 }
 
 

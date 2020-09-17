@@ -50,12 +50,12 @@ create_distributed_base(int mpi_rank, factory F) -> tree {
 
     auto pld31a_data = make_cgns_vector( {15} , F.alloc() );
     tree pld31a = F.newPointList("PointListDonor",std_e::make_span(pld31a_data));
-    tree gc31a = F.newGridConnectivity("Join2","Zone1","FaceCenter","Abutting1to1");
+    tree gc31a = F.newGridConnectivity("Join2","Zone1","Vertex","Abutting1to1");
     emplace_child(gc31a,std::move(pld31a));
 
     auto pld31b_data = make_cgns_vector( {16,17} , F.alloc() );
     tree pld31b = F.newPointList("PointListDonor",std_e::make_span(pld31b_data));
-    tree gc31b = F.newGridConnectivity("Join3","Zone1","FaceCenter","Abutting1to1");
+    tree gc31b = F.newGridConnectivity("Join3","Zone1","Vertex","Abutting1to1");
     emplace_child(gc31b,std::move(pld31b));
 
     tree zone_gc3 = F.newZoneGridConnectivity();
@@ -70,12 +70,12 @@ create_distributed_base(int mpi_rank, factory F) -> tree {
 
     auto pld11_data = make_cgns_vector( {101,102,103,104} , F.alloc() );
     tree pld11 = F.newPointList("PointListDonor",std_e::make_span(pld11_data));
-    tree gc11 = F.newGridConnectivity("Join4","Zone1","FaceCenter","Abutting1to1");
+    tree gc11 = F.newGridConnectivity("Join4","Zone1","CellCenter","Abutting1to1");
     emplace_child(gc11,std::move(pld11));
 
     auto pld10_data = make_cgns_vector( {111,112} , F.alloc() );
     tree pld10 = F.newPointList("PointListDonor",std_e::make_span(pld10_data));
-    tree gc10 = F.newGridConnectivity("Join5","Zone0","FaceCenter","Abutting1to1");
+    tree gc10 = F.newGridConnectivity("Join5","Zone0","Vertex","Abutting1to1");
     emplace_child(gc10,std::move(pld10));
 
     tree zone_gc1 = F.newZoneGridConnectivity();
@@ -90,7 +90,7 @@ create_distributed_base(int mpi_rank, factory F) -> tree {
 
     auto pld21_data = make_cgns_vector( {136,137} , F.alloc() );
     tree pld21 = F.newPointList("PointListDonor",std_e::make_span(pld21_data));
-    tree gc21 = F.newGridConnectivity("Join6","Zone3","FaceCenter","Abutting1to1");
+    tree gc21 = F.newGridConnectivity("Join6","Zone3","CellCenter","Abutting1to1");
     emplace_child(gc21,std::move(pld21));
 
     tree zone_gc2 = F.newZoneGridConnectivity();

@@ -14,18 +14,18 @@ namespace cgns {
 
 
 auto
-partition_with_boundary_first(tree& b, factory F) -> void {
+partition_with_boundary_first(tree& b, factory F, MPI_Comm comm) -> void {
   STD_E_ASSERT(b.label=="CGNSBase_t");
-  apply_base_renumbering(b,F,partition_zone_with_boundary_first);
+  apply_base_renumbering(b,F,partition_zone_with_boundary_first,comm);
 }
 
 
 auto
-partition_zone_with_boundary_first(tree& z, factory F) -> void {
+partition_zone_with_boundary_first(tree& z, donated_point_lists& plds, factory F) -> void {
   STD_E_ASSERT(z.label=="Zone_t");
   if (is_unstructured_zone(z)) {
     partition_coordinates(z);
-    partition_elements(z,F);
+    partition_elements(z,plds,F);
   }
 }
 
@@ -90,7 +90,7 @@ save_partition_point(tree& z, I4 nb_of_boundary_vertices) -> void {
 
 
 auto
-partition_elements(tree& z, factory F) -> void {
+partition_elements(tree& z, donated_point_lists& plds, factory F) -> void {
   STD_E_ASSERT(z.label=="Zone_t");
   auto elt_pools = get_children_by_label(z,"Elements_t");
   tree& ngons = element_pool<I4>(z,NGON_n);
@@ -106,6 +106,7 @@ partition_elements(tree& z, factory F) -> void {
   I4 offset = ElementRange<I4>(ngons)[0];
   std_e::offset_permutation elts_perm(offset,perm_old_to_new);
   renumber_point_lists(z,elts_perm,"FaceCenter");
+  renumber_point_lists_donated(plds,elts_perm,"FaceCenter");
 }
 
 

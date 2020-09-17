@@ -15,7 +15,7 @@ partition_with_boundary_first(PyObject* self, PyObject* args) {
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
 
   cgns::cgns_allocator alloc; // allocates and owns memory
-  cgns::partition_with_boundary_first(base,cgns::factory(&alloc));
+  cgns::partition_with_boundary_first(base,cgns::factory(&alloc),MPI_COMM_WORLD);
 
   add_new_nodes_and_ownership(base,alloc,base_pytree);
   Py_INCREF(Py_None); return Py_None;
@@ -68,7 +68,7 @@ remove_ghost_info(PyObject* self, PyObject* args) {
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
 
   cgns::cgns_allocator alloc; // allocates and owns memory
-  cgns::remove_ghost_info(base,cgns::factory(&alloc));
+  cgns::remove_ghost_info(base,cgns::factory(&alloc),MPI_COMM_WORLD);
 
   update_and_transfer_ownership(base,alloc,base_pytree);
   Py_INCREF(Py_None); return Py_None;

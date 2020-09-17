@@ -69,13 +69,15 @@ MPI_TEST_CASE("point_list_neighbor_to_donor",2) {
   auto b = example::create_distributed_base(test_rank,F);
 
   zone_exchange ze(b,test_comm);
-  auto [target_zone_names,pl_donor_data] = ze.point_list_neighbor_to_donor();
+  auto [target_zone_names,grid_locs,pl_donor_data] = ze.point_list_neighbor_to_donor();
 
-  MPI_CHECK( 0 , target_zone_names == jagged_vector<string>{{"Zone0"} , {"Zone0","Zone3"}} );
-  MPI_CHECK( 0 , pl_donor_data == jagged_vector<int,3>{{{1,2,3}} , {{111,112},{136,137}}} );
+  MPI_CHECK( 0 , target_zone_names == vector<string>{"Zone0","Zone0","Zone3"} );
+  MPI_CHECK( 0 , grid_locs == vector<GridLocation_t>{FaceCenter,Vertex,CellCenter} );
+  MPI_CHECK( 0 , pl_donor_data == jagged_vector<int,2>{{1,2,3},{111,112},{136,137}} );
 
-  MPI_CHECK( 1 , target_zone_names == jagged_vector<string>{{"Zone1","Zone1","Zone1"} , {"Zone1"}} );
-  MPI_CHECK( 1 , pl_donor_data == jagged_vector<int,3>{{{11,12,13,14},{15},{16,17}} , {{101,102,103,104}}} );
+  MPI_CHECK( 1 , target_zone_names == vector<string>{"Zone1","Zone1","Zone1","Zone1"} );
+  MPI_CHECK( 1 , grid_locs == vector<GridLocation_t>{FaceCenter,Vertex,Vertex,CellCenter} );
+  MPI_CHECK( 1 , pl_donor_data == jagged_vector<int,2>{{11,12,13,14},{15},{16,17},{101,102,103,104}} );
 }
 
 MPI_TEST_CASE("point_list_donor_to_neighbor",2) {
@@ -85,14 +87,14 @@ MPI_TEST_CASE("point_list_donor_to_neighbor",2) {
 
   zone_exchange ze(b,test_comm);
 
-  jagged_vector<int,3> pl_donor_data;
+  jagged_vector<int,2> pl_donor_data;
   if (test_rank==0) {
-    //                   "Zone0"     ,      "Zone0"  ,   "Zone3"
-    pl_donor_data = {{{100,200,300}} , {{11100,11200},{13600,13700}}};
+    //                   "Zone0"  ,    "Zone0"  ,   "Zone3"
+    pl_donor_data = {{100,200,300},{11100,11200},{13600,13700}};
   } 
   if (test_rank==1) {
-    //                        "Zone1"      ,"Zone1", "Zone1"    ,           "Zone1"
-    pl_donor_data = {{{1100,1200,1300,1400},{1500},{1600,1700}} , {{10100,10200,10300,10400}}};
+    //                        "Zone1"     ,"Zone1",  "Zone1" ,          "Zone1"
+    pl_donor_data = {{1100,1200,1300,1400},{1500},{1600,1700},{10100,10200,10300,10400}};
   }
 
   ze.point_list_donor_to_neighbor(pl_donor_data);

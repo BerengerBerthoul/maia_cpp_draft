@@ -4,6 +4,8 @@
 #include "cpp_cgns/cgns.hpp"
 #include "std_e/future/span.hpp"
 #include "cpp_cgns/sids/creation.hpp"
+#include "maia/transform/donated_point_lists.hpp"
+#include "mpi.h"
 
 
 namespace cgns {
@@ -55,11 +57,11 @@ Complexity:
     - Algorithms are at most linear time and space in the arrays number of elements.
 */
 auto
-partition_with_boundary_first(tree& b, factory F) -> void;
+partition_with_boundary_first(tree& b, factory F, MPI_Comm comm) -> void;
 
 
 auto
-partition_zone_with_boundary_first(tree& zone, factory F) -> void;
+partition_zone_with_boundary_first(tree& zone, donated_point_lists& plds, factory F) -> void;
 
 
 auto
@@ -68,6 +70,9 @@ partition_coordinates(tree& zone) -> void;
 
 auto
 permute_boundary_vertices_at_beginning(tree& zone, const std::vector<I4>& boundary_vertex_ids) -> void;
+
+auto
+permute_boundary_vertices(node_value& coord, const std::vector<I4>& perm) -> void;
 
 
 auto
@@ -83,7 +88,7 @@ save_partition_point(tree& zone, I4 nb_of_boundary_vertices) -> void;
 
 
 auto
-partition_elements(tree& zone, factory F) -> void;
+partition_elements(tree& zone, donated_point_lists& plds, factory F) -> void;
 
 
 } // cgns

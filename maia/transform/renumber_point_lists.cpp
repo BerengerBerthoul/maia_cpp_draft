@@ -10,9 +10,8 @@ namespace cgns {
 
 
 auto
-renumber_point_list(node_value& point_list, const std_e::offset_permutation<I4>& permutation) -> void {
+renumber_point_list(std_e::span<I4> pl, const std_e::offset_permutation<I4>& permutation) -> void {
   // Precondition: permutation is an index permutation (i.e. sort(permutation) == integer_range(permutation.size()))
-  auto pl = view_as_span<I4>(point_list);
   std_e::apply(permutation,pl);
 }
 
@@ -23,7 +22,16 @@ renumber_point_lists(tree& z, const std_e::offset_permutation<I4>& permutation, 
   for (tree& bc : get_nodes_by_matching(z,search_gen_paths)) {
     tree& pl = get_child_by_name(bc,"PointList");
     if (GridLocation(bc)==grid_location) {
-      renumber_point_list(pl.value,permutation);
+      renumber_point_list(view_as_span<I4>(pl.value),permutation);
+    }
+  }
+}
+auto
+renumber_point_lists_donated(donated_point_lists& plds, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void {
+  // TODO replace by multi_range iteration
+  for (int i=0; i<(int)plds.pls.size(); ++i) {
+    if (to_string(plds.locs[i])==grid_location) {
+      renumber_point_list(plds.pls[i],permutation);
     }
   }
 }

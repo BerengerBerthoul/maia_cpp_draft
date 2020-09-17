@@ -6,6 +6,7 @@
 #include "cpp_cgns/tree_manip.hpp"
 #include "cpp_cgns/sids/Hierarchical_Structures.hpp"
 #include "cpp_cgns/sids/Grid_Coordinates_Elements_and_Flow_Solution.hpp"
+#include "std_e/parallel/sub.hpp"
 
 using namespace cgns;
 
@@ -14,10 +15,13 @@ TEST_CASE("cgns__partition_with_boundary_first, with 2 zones") {
   factory F(&alloc);
 
   tree base = create_unstructured_base(F);
-  cgns::partition_with_boundary_first(base,F);
+
+  auto rank_sub_comm = std_e::seq_comm_of_rank(MPI_COMM_WORLD); // TODO extract in "seq_test_comm"
+  cgns::partition_with_boundary_first(base,F,rank_sub_comm.comm());
   
-  // zone 0
+  // zones
   tree& z0 = get_child_by_name(base,"Zone0");
+  tree& z1 = get_child_by_name(base,"Zone1");
 
   // sizes
   CHECK( VertexSize_U<I4>(z0) == 24 );
@@ -66,6 +70,12 @@ TEST_CASE("cgns__partition_with_boundary_first, with 2 zones") {
   CHECK( z0_grid_connec_pl[0] == 3 );
   REQUIRE( z0_grid_connec_pld.size() == 1 );
   CHECK( z0_grid_connec_pld[0] == 1 );
+  /// since there is no renumbering, in this case, on z0,
+  /// we check the renumbering was done by looking z1
+  tree& z1_grid_connec_pld_node = get_node_by_matching(z1,"ZoneGridConnectivity/MixingPlane/PointListDonor");
+  auto z1_grid_connec_pld = view_as_span<I4>(z1_grid_connec_pld_node.value);
+  REQUIRE( z1_grid_connec_pld.size() == 1 );
+  CHECK( z1_grid_connec_pld[0] == 3 );
 
   // elements
   tree& z0_ngon = get_child_by_name(z0,"Ngons");
