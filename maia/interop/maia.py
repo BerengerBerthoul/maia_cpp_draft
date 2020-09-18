@@ -14,12 +14,12 @@ def apply_to_bases(t,f):
                     " not on a node of type \""+I.getType(t)+"\".")
 
 
-def remove_ghost_info_of_base(b):
-  for z in I.getNodesByType(b,"Zone_t"):
+#def remove_ghost_info_of_base(b):
+#  for z in I.getNodesByType(b,"Zone_t"):
 
 
 def remove_ghost_info(t):
-  apply_to_bases(t,cmaia.remove_ghost_info_of_base)
+  apply_to_bases(t,cmaia.remove_ghost_info)
 
 
 

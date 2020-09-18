@@ -9,7 +9,7 @@
 #include "maia/generate/nfaces_from_ngons.hpp"
 
 static PyObject*
-partition_with_boundary_first(PyObject* self, PyObject* args) {
+partition_with_boundary_first(PyObject*, PyObject* args) {
   PyObject* base_pytree;
   if (!PyArg_ParseTuple(args, "O", &base_pytree)) return NULL;
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
@@ -22,7 +22,7 @@ partition_with_boundary_first(PyObject* self, PyObject* args) {
 }
 
 static PyObject*
-sort_nface_into_simple_connectivities(PyObject* self, PyObject* args) {
+sort_nface_into_simple_connectivities(PyObject*, PyObject* args) {
   PyObject* base_pytree;
   if (!PyArg_ParseTuple(args, "O", &base_pytree)) return NULL;
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
@@ -35,7 +35,7 @@ sort_nface_into_simple_connectivities(PyObject* self, PyObject* args) {
 }
 
 static PyObject*
-convert_to_simple_connectivities(PyObject* self, PyObject* args) {
+convert_to_simple_connectivities(PyObject*, PyObject* args) {
   PyObject* base_pytree;
   if (!PyArg_ParseTuple(args, "O", &base_pytree)) return NULL;
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
@@ -49,7 +49,7 @@ convert_to_simple_connectivities(PyObject* self, PyObject* args) {
 }
 
 static PyObject*
-add_nfaces(PyObject* self, PyObject* args) {
+add_nfaces(PyObject*, PyObject* args) {
   PyObject* base_pytree;
   if (!PyArg_ParseTuple(args, "O", &base_pytree)) return NULL;
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
@@ -62,7 +62,7 @@ add_nfaces(PyObject* self, PyObject* args) {
 }
 
 static PyObject*
-remove_ghost_info(PyObject* self, PyObject* args) {
+remove_ghost_info(PyObject*, PyObject* args) {
   PyObject* base_pytree;
   if (!PyArg_ParseTuple(args, "O", &base_pytree)) return NULL;
   cgns::tree base = cgns::view_as_cpptree(base_pytree);
