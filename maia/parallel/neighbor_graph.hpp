@@ -16,22 +16,22 @@
 namespace cgns {
 
 
-struct neighbor_zones {
+struct zone_infos {
   std::vector<std::string> names;
   std::vector<int> ids;
   std::vector<int> procs;
 };
-inline auto find_id_from_name(const neighbor_zones& nzs, const std::string& z_name) -> int {
-  auto it = find_if(begin(nzs.names),end(nzs.names),[&](const auto& n){ return n == z_name; });
-  STD_E_ASSERT(it!=end(nzs.names));
-  auto idx = it-begin(nzs.names);
-  return nzs.ids[idx];
+inline auto find_id_from_name(const zone_infos& zis, const std::string& z_name) -> int {
+  auto it = find_if(begin(zis.names),end(zis.names),[&](const auto& n){ return n == z_name; });
+  STD_E_ASSERT(it!=end(zis.names));
+  auto idx = it-begin(zis.names);
+  return zis.ids[idx];
 }
-inline auto find_name_from_id(const neighbor_zones& nzs, int z_id) -> const std::string& {
-  auto it = find_if(begin(nzs.ids),end(nzs.ids),[=](const auto& id){ return id == z_id; });
-  STD_E_ASSERT(it!=end(nzs.ids));
-  auto idx = it-begin(nzs.ids);
-  return nzs.names[idx];
+inline auto find_name_from_id(const zone_infos& zis, int z_id) -> const std::string& {
+  auto it = find_if(begin(zis.ids),end(zis.ids),[=](const auto& id){ return id == z_id; });
+  STD_E_ASSERT(it!=end(zis.ids));
+  auto idx = it-begin(zis.ids);
+  return zis.names[idx];
 }
 
 struct connectivity_info {
@@ -40,10 +40,10 @@ struct connectivity_info {
   tree* node;
 };
 inline auto
-find_donor_proc(const connectivity_info& x, const neighbor_zones& nzs) -> int {
-  auto it = std::find(begin(nzs.names),end(nzs.names),x.zone_donor_name);
-  int idx = it-begin(nzs.names);
-  return nzs.procs[idx];
+find_donor_proc(const connectivity_info& x, const zone_infos& zis) -> int {
+  auto it = std::find(begin(zis.names),end(zis.names),x.zone_donor_name);
+  int idx = it-begin(zis.names);
+  return zis.procs[idx];
 }
 
 
@@ -51,12 +51,12 @@ auto
 paths_of_all_mentionned_zones(const tree& b) -> cgns_paths;
 
 auto
-compute_neighbor_zones(const tree& b, MPI_Comm comm) -> neighbor_zones;
+compute_zone_infos(const tree& b, MPI_Comm comm) -> zone_infos;
 auto
 create_connectivity_infos(tree& b) -> std::vector<connectivity_info>;
 
 auto
-zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void;
+donor_zones_ranks(const zone_infos& zis, const std::vector<connectivity_info>& cis) -> std::vector<int>;
 
 // TODO replace by std_e::multi_range
 struct point_list_donors_by_zone {
@@ -67,7 +67,7 @@ struct point_list_donors_by_zone {
 // Note: for now, only PointListDonor can be exchanged (not much else to exchange anyway)
 class zone_exchange {
   private:
-    neighbor_zones nzs;
+    zone_infos zis;
     MPI_Comm neighbor_to_donor_comm;
     MPI_Comm donor_to_neighbor_comm;
     std_e::jagged_vector<connectivity_info> cis;
@@ -76,25 +76,24 @@ class zone_exchange {
     zone_exchange() = default;
     zone_exchange(tree& b, MPI_Comm comm)
     {
-      nzs = cgns::compute_neighbor_zones(b,comm);
-
-      std::vector<int> ranks = nzs.procs;
-      std_e::sort_unique(ranks); // TODO: also remove non-neighbor zones
-
-      neighbor_to_donor_comm = std_e::dist_graph_create_adj(comm,ranks);
-
+      zis = cgns::compute_zone_infos(b,comm);
       auto cis_ = cgns::create_connectivity_infos(b);
-      cis = std_e::sort_into_partitions(std::move(cis_),[&](const auto& ci){ return find_donor_proc(ci,nzs); });
 
-      proc_indices_in_donor = all_to_all(cis.indices(),neighbor_to_donor_comm);
+      std::vector<int> donor_ranks = donor_zones_ranks(zis,cis_);
 
-      // neighbor_ranks {
-      int nb_neighbor_procs = cis.size();
-      std::vector<int> procs(nb_neighbor_procs,std_e::rank(neighbor_to_donor_comm));
-      std::vector<int> neighbor_ranks = std_e::neighbor_all_to_all(procs,neighbor_to_donor_comm);
+      neighbor_to_donor_comm = std_e::dist_graph_create_adj(comm,donor_ranks);
 
-      donor_to_neighbor_comm = std_e::dist_graph_create_adj(comm,neighbor_ranks);
-      // neighbor_ranks }
+      cis = std_e::sort_into_partitions(std::move(cis_),[&](const auto& ci){ return find_donor_proc(ci,zis); });
+
+      proc_indices_in_donor = neighbor_all_to_all(cis.indices(),neighbor_to_donor_comm);
+
+      // receiver_ranks {
+      int nb_donor_procs = donor_ranks.size();
+      std::vector<int> procs(nb_donor_procs,std_e::rank(neighbor_to_donor_comm));
+      std::vector<int> receiver_ranks = std_e::neighbor_all_to_all(procs,neighbor_to_donor_comm);
+
+      donor_to_neighbor_comm = std_e::dist_graph_create_adj(comm,receiver_ranks);
+      // receiver_ranks }
     }
 
     auto
@@ -114,7 +113,7 @@ class zone_exchange {
         cur += pld_span.size();
 
         const std::string& z_name = ci.zone_donor_name;
-        int z_id = find_id_from_name(nzs,z_name);
+        int z_id = find_id_from_name(zis,z_name);
         z_ids.push_back(z_id);
 
         auto loc_str = to_string(get_child_by_name(gc,"GridLocation").value);
@@ -128,7 +127,7 @@ class zone_exchange {
       auto pl_data = std_e::flatten_last_level(std::move(pl_data_3));
 
       auto [target_z_ids,_0] = neighbor_all_to_all_v_from_indices(z_ids,cis.indices(),neighbor_to_donor_comm);
-      auto target_names = std_e::transform(target_z_ids,[this](int z_id){ return find_name_from_id(this->nzs,z_id); });
+      auto target_names = std_e::transform(target_z_ids,[this](int z_id){ return find_name_from_id(this->zis,z_id); });
 
       auto [target_locs,_1] = neighbor_all_to_all_v_from_indices(locs_neigh,cis.indices(),neighbor_to_donor_comm);
 

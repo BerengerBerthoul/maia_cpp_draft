@@ -70,7 +70,7 @@ remove_ghost_info(PyObject*, PyObject* args) {
   cgns::cgns_allocator alloc; // allocates and owns memory
   cgns::remove_ghost_info(base,cgns::factory(&alloc),MPI_COMM_WORLD);
 
-  update_and_transfer_ownership(base,alloc,base_pytree);
+  update_and_transfer_ownership2(base,alloc,base_pytree);
   Py_INCREF(Py_None); return Py_None;
 }
 

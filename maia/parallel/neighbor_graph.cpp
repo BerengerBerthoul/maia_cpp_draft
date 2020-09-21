@@ -78,7 +78,7 @@ paths_of_all_mentionned_zones(const tree& b) -> cgns_paths {
 }
 
 auto
-compute_neighbor_zones(const tree& b, MPI_Comm comm) -> neighbor_zones { // TODO rename mentionned_zones
+compute_zone_infos(const tree& b, MPI_Comm comm) -> zone_infos {
   auto paths = paths_of_all_mentionned_zones(b);
   label_registry zone_reg(paths,comm);
 
@@ -107,10 +107,13 @@ compute_neighbor_zones(const tree& b, MPI_Comm comm) -> neighbor_zones { // TODO
   return {std::move(neighbor_zone_names),std::move(neighbor_zone_ids),std::move(proc_of_neighbor_zones)};
 }
 
-//auto
-//zones_neighborhood_graph(const tree& b, MPI_Comm comm) -> void {
-//  auto zr = compute_neighbor_zones(b,comm);
-//}
+
+auto
+donor_zones_ranks(const zone_infos& zis, const std::vector<connectivity_info>& cis) -> std::vector<int> {
+  std::vector<int> ranks = std_e::transform(cis,[&zis](const auto& ci){ return find_donor_proc(ci,zis); });
+  std_e::sort_unique(ranks);
+  return ranks;
+}
 
 
 } // cgns

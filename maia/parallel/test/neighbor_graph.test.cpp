@@ -32,17 +32,17 @@ MPI_TEST_CASE("paths_of_all_mentionned_zones",2) {
   MPI_CHECK(1, paths == expected_paths_1);
 }
 
-MPI_TEST_CASE("neighbor_zones",2) {
+MPI_TEST_CASE("zone_infos",2) {
   cgns_allocator alloc; // allocates and owns memory
   factory F(&alloc);
   cgns::tree b = example::create_distributed_base(test_rank,F);
 
-  neighbor_zones nzs = cgns::compute_neighbor_zones(b,test_comm);
+  zone_infos zis = cgns::compute_zone_infos(b,test_comm);
 
-  MPI_CHECK(0, nzs.names == vector<string>{"Zone0","Zone1","Zone3"} );
-  MPI_CHECK(0, nzs.procs == vector< int  >{   0   ,   1   ,   0   } );
-  MPI_CHECK(1, nzs.names == vector<string>{"Zone0","Zone1","Zone2","Zone3"} );
-  MPI_CHECK(1, nzs.procs == vector< int  >{   0   ,   1   ,   1   ,   0   } );
+  MPI_CHECK(0, zis.names == vector<string>{"Zone0","Zone1","Zone3"} );
+  MPI_CHECK(0, zis.procs == vector< int  >{   0   ,   1   ,   0   } );
+  MPI_CHECK(1, zis.names == vector<string>{"Zone0","Zone1","Zone2","Zone3"} );
+  MPI_CHECK(1, zis.procs == vector< int  >{   0   ,   1   ,   1   ,   0   } );
 }
 MPI_TEST_CASE("connectivity_infos",2) {
   cgns_allocator alloc; // allocates and owns memory

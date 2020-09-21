@@ -6,6 +6,7 @@
 #include "cpp_cgns/sids/Grid_Coordinates_Elements_and_Flow_Solution.hpp"
 #include "cpp_cgns/sids/Building_Block_Structure_Definitions.hpp"
 #include "std_e/algorithm/iota.hpp"
+#include "std_e/algorithm/algorithm.hpp"
 #include "maia/transform/renumber_point_lists.hpp"
 
 namespace cgns {
@@ -14,6 +15,13 @@ auto
 remove_ghost_info(tree& b, factory F, MPI_Comm comm) -> void {
   STD_E_ASSERT(b.label=="CGNSBase_t");
   apply_base_renumbering(b,F,remove_ghost_info_from_zone,comm);
+  
+  for (tree& z : get_children_by_label(b,"Zone_t")) {
+    rm_invalid_ids_in_point_lists(z,"FaceCenter",F); // For BC
+    rm_invalid_ids_in_point_lists_with_donors(z,"Vertex",F); // For GC
+    rm_grid_connectivities(z,"FaceCenter",F);
+    rm_grid_connectivities(z,"CellCenter",F);
+  }
 }
 
 
@@ -26,7 +34,7 @@ template<class I> auto
 nb_ghost_elements(const tree& elt_pool) -> I {
   if (has_child_of_name(elt_pool,"Rind")) {
     auto elt_rind = Rind<I4>(elt_pool);
-    STD_E_ASSERT(elt_rind[0]=0);
+    STD_E_ASSERT(elt_rind[0]==0);
     return elt_rind[1];
   } else {
     return 0;
@@ -37,6 +45,23 @@ nb_owned_elements(const tree& elt_pool) -> I {
   return nb_elements<I>(elt_pool) - nb_ghost_elements<I>(elt_pool);
 }
 
+// TODO BC, renum connec vertices after 
+/**
+ * \brief remove all ghost info, but keeps the GridCOnnectivity 1-to-1 on nodes
+ * \param [inout] z: the cgns zone
+ * \param [in] plds: PointListDonors from other zones pointing to zone "z"
+ * \param [in] F: the factory to allocate new CGNS object an memory
+ * \pre ghost nodes/elements are given by "Rind" nodes
+ * \pre ghost nodes/elements are given their "owner" zone and id by GridConnectivities
+ *
+ * \details
+ *   1. remove ghost elements (rind + grid connectivity)
+ *   2. renumber elts in point lists
+ *   3. remove ghost nodes (rind)
+ *   4. only keep those used in conncectivities
+ *   5. renumber nodes in GridCoordinates, PointList, PointListDonor from other zones, Elements
+ *   6. delete invalid PointList
+*/
 auto
 remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> void {
   tree_range elt_pools = get_children_by_label(z,"Elements_t");
@@ -44,37 +69,54 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
   STD_E_ASSERT(cgns::elts_ranges_are_contiguous(elt_pools));
   int nb_elt_pools = elt_pools.size();
 
-  // 0. compute permutation
+  // 0. compute elt permutation
   I4 elt_first_id = ElementRange<I4>(elt_pools[0])[0];
   std::vector<I4> permutation;
   std_e::knot_vector<I4> knots = {0};
+  I4 nb_owned_cells = 0;
   for (const tree& elt_pool: elt_pools) {
+    auto elt_type = (ElementType_t)ElementType<I4>(elt_pool);
     I4 nb_owned_elts = nb_owned_elements<I4>(elt_pool);
     I4 nb_ghost_elts = nb_ghost_elements<I4>(elt_pool);
 
+    if (std_e::contains(element_types_of_dimension(3),elt_type)) {
+      nb_owned_cells += nb_owned_elts;
+    }
+
     std_e::iota_n(std::back_inserter(permutation), nb_owned_elts, knots.back());
     knots.push_back_length(nb_owned_elts);
-    std::fill_n(std::back_inserter(permutation), nb_ghost_elts, -1-elt_first_id); // UGLY: -offset (here: elt_first_id) because just after, offset_permutation does +offset
+    std::fill_n(std::back_inserter(permutation), nb_ghost_elts, -1-1); // UGLY: -offset (here: -1) because just after, offset_permutation does +offset
   }
-  std_e::offset_permutation perm(elt_first_id,permutation);
+  std_e::offset_permutation perm(elt_first_id,1,permutation);
 
-  // 1. renum pl
+  // 1. renum pl BC
   renumber_point_lists(z,perm,"FaceCenter");
-  renumber_point_lists(z,perm,"CellCenter");
-  renumber_point_lists_donated(plds,perm,"FaceCenter");
-  renumber_point_lists_donated(plds,perm,"CellCenter");
+  //renumber_point_lists(z,perm,"CellCenter");
+  //renumber_point_lists_donated(plds,perm,"FaceCenter");
+  //renumber_point_lists_donated(plds,perm,"CellCenter");
 
   // 2. rm ghost cells
-  CellSize_U<I4>(z) = knots.length();
+  CellSize_U<I4>(z) = nb_owned_cells;
   for (int i=0; i<nb_elt_pools; ++i) {
     tree& elt_pool = elt_pools[i];
     auto elt_range = ElementRange<I4>(elt_pool);
-    elt_range[0] = knots[i];
-    elt_range[1] = knots[i+1]-1; // -1 because CGNS has closed intervals
+    elt_range[0] = knots[i]+1;
+    elt_range[1] = knots[i+1];
 
     I4 elt_type = ElementType<I4>(elt_pool);
-    tree& elt_connec = get_child_by_name(z,"ElementConnectivity");
-    elt_connec.value.dims[0] = knots.length(i)*number_of_nodes(elt_type); // TODO alloc/copy/deallocate
+    tree& elt_connec = get_child_by_name(elt_pool,"ElementConnectivity");
+    // TODO once pybind11: do not allocate/copy/del, only resize
+    //elt_connec.value.dims[0] = knots.length(i)*number_of_nodes(elt_type);
+    // del old {
+    int new_connec_size = knots.length(i)*number_of_nodes(elt_type);
+    auto old_connec_val = view_as_span<I4>(elt_connec.value);
+    auto new_connec_val = make_cgns_vector<I4>(new_connec_size,F.alloc());
+    for (int i=0; i<new_connec_size; ++i) {
+      new_connec_val[i] = old_connec_val[i];
+    }
+    F.deallocate_node_value(elt_connec.value);
+    elt_connec.value = view_as_node_value(new_connec_val);
+    // del old }
 
     F.rm_child_by_name(elt_pool,"Rind");
   }
@@ -86,7 +128,26 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
     auto cs = ElementConnectivity<I4>(elt_pool);
     std::copy(begin(cs),end(cs),std::back_inserter(nodes));
   }
-  std_e::sort_unique(nodes);
+  std_e::sort_unique(nodes); // TODO: more efficient: counting sort-like algo
+
+  /// 4.1. counting impl
+  int old_nb_nodes = VertexSize_U<I4>(z);
+  ELOG(old_nb_nodes);
+  std::vector<I4> nodes2(old_nb_nodes,-1);
+  for (const tree& elt_pool: elt_pools) {
+    auto cs = ElementConnectivity<I4>(elt_pool);
+    for (I4 c : cs) {
+      nodes2[c-1] = 0;
+    }
+  }
+  // TODO remplate by filter(!=-1) | iota
+  I4 cnt = 0;
+  for (I4& n : nodes2) {
+    if (n!=-1) {
+      n = cnt++;
+    }
+  }
+  // 4.1. }  
 
   tree& coords = get_child_by_name(z,"GridCoordinates");
   auto rind = view_as_span<I4>(get_child_by_name(coords,"Rind").value);
@@ -95,29 +156,54 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
   nodes.erase(first_ghost_pos,end(nodes));
 
   int nb_nodes = nodes.size();
+  int nb_nodes2 = cnt;
+  ELOG(nb_nodes);
+  ELOG(nb_nodes2);
+  auto node_perm_at_0 = nodes;
+  std_e::offset(node_perm_at_0,-1);
   std_e::offset_permutation node_perm(1,std::move(nodes)); // CGNS nodes indexed at 1
   
   // 5. delete unused nodes
-  VertexSize_U<I4>(z) = nb_nodes;
+  //VertexSize_U<I4>(z) = nb_nodes;
+  VertexSize_U<I4>(z) = nb_nodes2;
+  ELOG(VertexSize_U<I4>(z));
 
   F.rm_child_by_name(coords,"Rind");
 
+  /// 5.0. renumber GridCoordinates
   for (tree& coord : get_children_by_label(coords,"DataArray_t")) {
-    auto old_coord_val = view_as_span<I4>(coord.value);
-    auto new_coord_val = make_cgns_vector<I4>(nb_nodes,F.alloc());
-    for (int i=0; i<nb_nodes; ++i) {
-      new_coord_val[i] = old_coord_val[node_perm[i]];
+    // TODO once pybind11: do not allocate/copy/del, only resize
+    auto old_coord_val = view_as_span<R8>(coord.value);
+    //auto new_coord_val = make_cgns_vector<R8>(nb_nodes,F.alloc());
+    //for (int i=0; i<nb_nodes; ++i) { // TODO this is ~ std_e::permute_copy
+    //  new_coord_val[i] = old_coord_val[node_perm[i]];
+    //}
+    auto new_coord_val = make_cgns_vector<R8>(nb_nodes2,F.alloc());
+    for (I4 i=0; i<old_nb_nodes; ++i) {
+      I4 new_node_pos = nodes2[i];
+      if (new_node_pos!=-1) {
+        new_coord_val[new_node_pos] = old_coord_val[i];
+      }
     }
     F.deallocate_node_value(coord.value);
     coord.value = view_as_node_value(new_coord_val);
   }
-  
-// TODO move after pld have come back to their neighbor zone
-  // 3. rm invalid pl (-1)
-  //rm_invalid_ids_in_point_lists(z,"FaceCenter");
-  //rm_invalid_ids_in_point_lists(z,"CellCenter");
-  //rm_point_lists(z,"Vertex");
-  // TODO check no invalid in PointListDonor (since they are donors, they cannot be ghost)
+
+  //auto node_perm_at_0 = node_perm.perm;
+  //auto old_to_new_node_perm = std_e::inverse_partial_permutation(node_perm.perm,old_nb_nodes,-1);
+  auto old_to_new_node_perm = std_e::inverse_partial_permutation(node_perm_at_0,old_nb_nodes,-1);
+  /// 5.1. renumber element connectivities
+  for (tree& elt_pool: elt_pools) {
+    auto connec = view_as_span<I4>(get_child_by_name(elt_pool,"ElementConnectivity").value);
+    for (I4& node : connec) {
+      node = nodes2[node-1]+1; // TODO invert in offset_permutation
+    }
+  }
+
+  /// 5.2. renumber pl
+  std_e::offset_permutation node_perm2(1,std::move(nodes2)); // CGNS nodes indexed at 1
+  renumber_point_lists(z,node_perm2,"Vertex");
+  renumber_point_lists_donated(plds,node_perm2,"Vertex");
 }
 
 } // cgns
