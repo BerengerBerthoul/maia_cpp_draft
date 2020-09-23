@@ -11,6 +11,7 @@ namespace cgns {
 
 
 auto renumber_point_lists(tree& z, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void;
+auto renumber_point_lists2(tree& z, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void; // TODO DEL
 auto renumber_point_lists_donated(donated_point_lists& plds, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void;
 
 auto

@@ -123,12 +123,12 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
 
 
   // 4. gather all nodes used by elements
-  std::vector<I4> nodes;
-  for (const tree& elt_pool: elt_pools) {
-    auto cs = ElementConnectivity<I4>(elt_pool);
-    std::copy(begin(cs),end(cs),std::back_inserter(nodes));
-  }
-  std_e::sort_unique(nodes); // TODO: more efficient: counting sort-like algo
+  //std::vector<I4> nodes;
+  //for (const tree& elt_pool: elt_pools) {
+  //  auto cs = ElementConnectivity<I4>(elt_pool);
+  //  std::copy(begin(cs),end(cs),std::back_inserter(nodes));
+  //}
+  //std_e::sort_unique(nodes); // TODO: more efficient: counting sort-like algo
 
   /// 4.1. counting impl
   int old_nb_nodes = VertexSize_U<I4>(z);
@@ -150,23 +150,22 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
   // 4.1. }  
 
   tree& coords = get_child_by_name(z,"GridCoordinates");
-  auto rind = view_as_span<I4>(get_child_by_name(coords,"Rind").value);
-  auto first_ghost_node_id = VertexSize_U<I4>(z)+1 - rind[1];
-  auto first_ghost_pos = std::lower_bound(begin(nodes),end(nodes),first_ghost_node_id);
-  nodes.erase(first_ghost_pos,end(nodes));
+  //auto rind = view_as_span<I4>(get_child_by_name(coords,"Rind").value);
+  //auto first_ghost_node_id = VertexSize_U<I4>(z)+1 - rind[1];
+  //auto first_ghost_pos = std::lower_bound(begin(nodes),end(nodes),first_ghost_node_id);
+  //nodes.erase(first_ghost_pos,end(nodes));
 
-  int nb_nodes = nodes.size();
+  //int nb_nodes = nodes.size();
   int nb_nodes2 = cnt;
-  ELOG(nb_nodes);
+  //ELOG(nb_nodes);
   ELOG(nb_nodes2);
-  auto node_perm_at_0 = nodes;
-  std_e::offset(node_perm_at_0,-1);
-  std_e::offset_permutation node_perm(1,std::move(nodes)); // CGNS nodes indexed at 1
+  //auto node_perm_at_0 = nodes;
+  //std_e::offset(node_perm_at_0,-1);
+  //std_e::offset_permutation node_perm(1,std::move(nodes)); // CGNS nodes indexed at 1
   
   // 5. delete unused nodes
   //VertexSize_U<I4>(z) = nb_nodes;
   VertexSize_U<I4>(z) = nb_nodes2;
-  ELOG(VertexSize_U<I4>(z));
 
   F.rm_child_by_name(coords,"Rind");
 
@@ -191,7 +190,7 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
 
   //auto node_perm_at_0 = node_perm.perm;
   //auto old_to_new_node_perm = std_e::inverse_partial_permutation(node_perm.perm,old_nb_nodes,-1);
-  auto old_to_new_node_perm = std_e::inverse_partial_permutation(node_perm_at_0,old_nb_nodes,-1);
+  //auto old_to_new_node_perm = std_e::inverse_partial_permutation(node_perm_at_0,old_nb_nodes,-1);
   /// 5.1. renumber element connectivities
   for (tree& elt_pool: elt_pools) {
     auto connec = view_as_span<I4>(get_child_by_name(elt_pool,"ElementConnectivity").value);
@@ -202,7 +201,7 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
 
   /// 5.2. renumber pl
   std_e::offset_permutation node_perm2(1,std::move(nodes2)); // CGNS nodes indexed at 1
-  renumber_point_lists(z,node_perm2,"Vertex");
+  renumber_point_lists2(z,node_perm2,"Vertex");
   renumber_point_lists_donated(plds,node_perm2,"Vertex");
 }
 

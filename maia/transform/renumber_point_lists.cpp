@@ -14,6 +14,16 @@ renumber_point_list(std_e::span<I4> pl, const std_e::offset_permutation<I4>& per
   // Precondition: permutation is an index permutation (i.e. sort(permutation) == integer_range(permutation.size()))
   std_e::apply(permutation,pl);
 }
+auto
+renumber_point_list2(std_e::span<I4> pl, const std_e::offset_permutation<I4>& permutation) -> void {
+  // Precondition: permutation is an index permutation (i.e. sort(permutation) == integer_range(permutation.size()))
+  for (auto& i : pl) {
+    //STD_E_ASSERT(i>0 && i<=permutation.perm.size());
+    i = permutation(i);
+    if (i==0) i=-1; // TODO FIXME this is because offset_permutation also offsets -1 rather than not messing with this special value
+    //STD_E_ASSERT(i>0 && i<=permutation.perm.size());
+  }
+}
 
 template<class Fun> auto
 for_each_point_list(tree& z, const std::string& grid_location, Fun f) {
@@ -27,8 +37,32 @@ for_each_point_list(tree& z, const std::string& grid_location, Fun f) {
 }
 
 auto
+is_bc_gc_with_empty_point_list(const tree& t) -> bool {
+  return 
+      (t.label=="BC_t" || t.label=="GridConnectivity_t")
+   && get_child_by_name(t,"PointList").value.dims[1]==0;
+}
+auto
+remove_if_empty_point_list(tree& z, factory F) -> void {
+  STD_E_ASSERT(z.label=="Zone_t");
+  // TODO this is ugly, think of something better
+  std::vector<std::string> search_node_names = {"ZoneBC","ZoneGridConnectivity"};
+  for (const auto& search_node_name : search_node_names) {
+    if (has_child_of_name(z,search_node_name)) {
+      tree& search_node = get_child_by_name(z,search_node_name);
+      F.rm_children_by_predicate(search_node, is_bc_gc_with_empty_point_list);
+    }
+  }
+}
+
+auto
 renumber_point_lists(tree& z, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void {
   auto f = [&permutation](auto& pl){ renumber_point_list(view_as_span<I4>(pl),permutation); };
+  for_each_point_list(z,grid_location,f);
+}
+auto
+renumber_point_lists2(tree& z, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void {
+  auto f = [&permutation](auto& pl){ renumber_point_list2(view_as_span<I4>(pl),permutation); };
   for_each_point_list(z,grid_location,f);
 }
 
@@ -37,7 +71,7 @@ renumber_point_lists_donated(donated_point_lists& plds, const std_e::offset_perm
   // TODO replace by multi_range iteration
   for (int i=0; i<(int)plds.pls.size(); ++i) {
     if (to_string(plds.locs[i])==grid_location) {
-      renumber_point_list(plds.pls[i],permutation);
+      renumber_point_list2(plds.pls[i],permutation);
     }
   }
 }
@@ -55,6 +89,7 @@ auto
 rm_invalid_ids_in_point_lists(tree& z, const std::string& grid_location, factory F) -> void {
   auto f = [&F](auto& pl){ rm_invalid_ids_in_point_list(pl,F); };
   for_each_point_list(z,grid_location,f);
+  remove_if_empty_point_list(z,F);
 }
 auto
 rm_invalid_ids_in_point_lists_with_donors(tree& z, const std::string& grid_location, factory F) -> void {
@@ -69,7 +104,7 @@ rm_invalid_ids_in_point_lists_with_donors(tree& z, const std::string& grid_locat
       auto new_pld_val = make_cgns_vector<I4>(F.alloc());
       int old_nb_pl = old_pl_val.size();
       for (int i=0; i<old_nb_pl; ++i) {
-        STD_E_ASSERT(old_pld_val[i]!=-1); // if donor, then it means that it was owned by the donor zone, hence, not deleted by it
+        //STD_E_ASSERT(old_pld_val[i]!=-1); // if donor, then it means that it was owned by the donor zone, hence, not deleted by it
         if (old_pl_val[i]!=-1) {
           new_pl_val.push_back(old_pl_val[i]);
           new_pld_val.push_back(old_pld_val[i]);
@@ -81,6 +116,7 @@ rm_invalid_ids_in_point_lists_with_donors(tree& z, const std::string& grid_locat
       pld = view_as_node_value_1(new_pld_val);
     }
   }
+  remove_if_empty_point_list(z,F);
 }
 
 auto
