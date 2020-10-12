@@ -1,12 +1,27 @@
 ## Global config ##
 cmake_minimum_required(VERSION 3.12)
 
-if(DEFINED ENV{PROJECT_ROOT})
-  set(PROJECT_ROOT $ENV{PROJECT_ROOT})
+### Boostrap project_utils ###
+if(USE_SUBMODULE_SOURCES)
+  if(DEFINED ENV{PROJECT_ROOT})
+    set(PROJECT_ROOT $ENV{PROJECT_ROOT})
+  else()
+    set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
+  endif()
+  set(PROJECT_UTILS_DIR ${PROJECT_ROOT}/external/project_utils)
 else()
-  set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
+  ### project_utils ###
+  FetchContent_Declare(
+    project_utils
+    GIT_REPOSITORY https://github.com/BerengerBerthoul/project_utils.git
+    GIT_TAG        1.0.1
+  )
+  FetchContent_GetProperties(project_utils)
+  if(NOT project_utils_POPULATED)
+    FetchContent_Populate(project_utils)
+  endif()
+  set(PROJECT_UTILS_DIR ${project_utils_SOURCE_DIR})
 endif()
-include(${PROJECT_ROOT}/external/project_utils/scripts/cmake/target_add_dependency.cmake)
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
@@ -118,7 +133,7 @@ if(MAIA_ENABLE_TEST)
   include(CTest)
   add_executable(${PROJECT_NAME}_unit_tests
     ${test_files}
-    ${PROJECT_ROOT}/external/project_utils/src/mpi_unit_test_main.cpp
+    ${PROJECT_UTILS_DIR}/src/mpi_unit_test_main.cpp
   )
   target_link_libraries(${PROJECT_NAME}_unit_tests
     PUBLIC
