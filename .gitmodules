@@ -7,3 +7,6 @@
 [submodule "external/cpp_cgns"]
 	path = external/cpp_cgns
 	url = https://github.com/BerengerBerthoul/cpp_cgns.git
+[submodule "external/tmp_cgns"]
+	path = external/tmp_cgns
+	url = https://github.com/BerengerBerthoul/empty.git
