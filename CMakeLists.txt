@@ -90,26 +90,26 @@ target_link_libraries(${PROJECT_NAME}
 ## Install ##
 target_install(${PROJECT_NAME})
 
-## CPython interface
-set(cpython_project_name maia_cpython)
-add_library(${cpython_project_name} SHARED ${cpython_files})
-target_link_libraries(${cpython_project_name}
-  PUBLIC 
-    maia::maia
-)
-set_target_properties(
-  ${cpython_project_name}
-  PROPERTIES
-    PREFIX ""
-    OUTPUT_NAME "${cpython_project_name}"
-    LINKER_LANGUAGE C
-)
-install(TARGETS ${cpython_project_name} EXPORT ${cpython_project_name}Targets
-  LIBRARY DESTINATION py
-)
-install(FILES ${python_files}
-  DESTINATION py
-)
+### CPython interface
+#set(cpython_project_name maia_cpython)
+#add_library(${cpython_project_name} SHARED ${cpython_files})
+#target_link_libraries(${cpython_project_name}
+#  PUBLIC 
+#    maia::maia
+#)
+#set_target_properties(
+#  ${cpython_project_name}
+#  PROPERTIES
+#    PREFIX ""
+#    OUTPUT_NAME "${cpython_project_name}"
+#    LINKER_LANGUAGE C
+#)
+#install(TARGETS ${cpython_project_name} EXPORT ${cpython_project_name}Targets
+#  LIBRARY DESTINATION py
+#)
+#install(FILES ${python_files}
+#  DESTINATION py
+#)
 
 ## Unit tests ##
 option(MAIA_ENABLE_TEST "Enable testing for ${PROJECT_NAME}" ON)
