@@ -1,5 +1,6 @@
 ## Global config ##
 cmake_minimum_required(VERSION 3.12)
+include(FetchContent)
 
 ### Boostrap project_utils ###
 if(USE_SUBMODULE_SOURCES)
@@ -35,7 +36,6 @@ project(
 
 
 ## Dependencies ##
-include(FetchContent)
 ### doctest ###
 FetchContent_Declare(
   doctest
@@ -90,13 +90,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_add_dependency(${PROJECT_NAME} std_e)
 target_add_dependency(${PROJECT_NAME} cpp_cgns)
-target_add_dependency(${PROJECT_NAME} tmp_cgns)
+#target_add_dependency(${PROJECT_NAME} tmp_cgns)
 target_add_thirdparty_dependency(${PROJECT_NAME} MPI REQUIRED COMPONENTS CXX)
 target_link_libraries(${PROJECT_NAME}
   PUBLIC 
     std_e::std_e
     cpp_cgns::cpp_cgns
-    tmp_cgns::tmp_cgns
+    #tmp_cgns::tmp_cgns
     range-v3::range-v3
     MPI::MPI_CXX
 )
