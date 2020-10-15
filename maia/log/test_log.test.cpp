@@ -3,7 +3,6 @@
 namespace {
 
 bool init_maia_test_logger() {
-  std_e::mpi_init_if_needed();
   // maia test logger
   //   - always off
   //   - this file is only compiled for tests, so overwrites the maia default logger

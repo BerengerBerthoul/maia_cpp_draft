@@ -1,4 +1,4 @@
-#include "std_e/unit_test/doctest.hpp"
+#include "doctest/extensions/doctest_mpi.h"
 
 //#include "maia/sids_example/unstructured_base.hpp"
 //#include "maia/transform/partition_with_boundary_first/partition_with_boundary_first.hpp"

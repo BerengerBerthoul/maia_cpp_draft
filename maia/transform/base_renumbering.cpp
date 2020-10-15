@@ -5,13 +5,13 @@ namespace cgns {
 auto
 register_connectivities_PointList_infos(tree& base, MPI_Comm comm) -> interzone_point_list_info {
   zone_exchange ze(base,comm);
-  auto plds_by_zone = ze.point_list_neighbor_to_donor();
+  auto plds_by_zone = ze.send_PointListDonor_to_donor_proc();
   return {std::move(ze),std::move(plds_by_zone)};
 }
 
 auto
 re_number_point_lists_donors(interzone_point_list_info& pl_infos) -> void {
-  pl_infos.ze.point_list_donor_to_neighbor(pl_infos.pld_by_z.plds);
+  pl_infos.ze.receive_PointListDonor_from_donor_proc(pl_infos.pld_by_z.plds);
 }
 
 } // cgns

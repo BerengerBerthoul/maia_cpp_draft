@@ -1,5 +1,5 @@
 #include "std_e/unit_test/doctest.hpp"
-#include "std_e/unit_test/mpi/doctest.hpp"
+#include "doctest/extensions/doctest_mpi.h"
 
 #include "maia/sids_example/distributed_base.hpp"
 #include "maia/parallel/neighbor_graph.hpp"
@@ -63,24 +63,27 @@ MPI_TEST_CASE("connectivity_infos",2) {
 }
 
 
-MPI_TEST_CASE("point_list_neighbor_to_donor",2) {
+MPI_TEST_CASE("send_PointListDonor_to_donor_proc",2) {
   cgns_allocator alloc; // allocates and owns memory
   factory F(&alloc);
   auto b = example::create_distributed_base(test_rank,F);
 
   zone_exchange ze(b,test_comm);
-  auto [target_zone_names,grid_locs,pl_donor_data] = ze.point_list_neighbor_to_donor();
+  auto [donor_zone_names,receiver_zone_names,grid_locs,pl_donor_data] = ze.send_PointListDonor_to_donor_proc();
 
-  MPI_CHECK( 0 , target_zone_names == vector<string>{"Zone0","Zone0","Zone3"} );
+  ELOG(receiver_zone_names);
+  MPI_CHECK( 0 ,    donor_zone_names == vector<string>{"Zone0","Zone0","Zone3"} );
+  MPI_CHECK( 0 , receiver_zone_names == vector<string>{"Zone0","Zone1","Zone2"} );
   MPI_CHECK( 0 , grid_locs == vector<GridLocation_t>{FaceCenter,Vertex,CellCenter} );
   MPI_CHECK( 0 , pl_donor_data == jagged_vector<int,2>{{1,2,3},{111,112},{136,137}} );
 
-  MPI_CHECK( 1 , target_zone_names == vector<string>{"Zone1","Zone1","Zone1","Zone1"} );
+  MPI_CHECK( 1 ,    donor_zone_names == vector<string>{"Zone1","Zone1","Zone1","Zone1"} );
+  MPI_CHECK( 1 , receiver_zone_names == vector<string>{"Zone0","Zone3","Zone3","Zone1"} );
   MPI_CHECK( 1 , grid_locs == vector<GridLocation_t>{FaceCenter,Vertex,Vertex,CellCenter} );
   MPI_CHECK( 1 , pl_donor_data == jagged_vector<int,2>{{11,12,13,14},{15},{16,17},{101,102,103,104}} );
 }
 
-MPI_TEST_CASE("point_list_donor_to_neighbor",2) {
+MPI_TEST_CASE("receive_PointListDonor_from_donor_proc",2) {
   cgns_allocator alloc; // allocates and owns memory
   factory F(&alloc);
   auto b = example::create_distributed_base(test_rank,F);
@@ -97,7 +100,7 @@ MPI_TEST_CASE("point_list_donor_to_neighbor",2) {
     pl_donor_data = {{1100,1200,1300,1400},{1500},{1600,1700},{10100,10200,10300,10400}};
   }
 
-  ze.point_list_donor_to_neighbor(pl_donor_data);
+  ze.receive_PointListDonor_from_donor_proc(pl_donor_data);
 
   if (test_rank==0) {
     auto pl_join0 = view_as_span<I4>(get_node_by_matching(b,"Zone0/ZoneGridConnectivity/Join0/PointListDonor").value);

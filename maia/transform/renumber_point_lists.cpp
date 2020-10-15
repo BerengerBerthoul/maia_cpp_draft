@@ -69,9 +69,9 @@ renumber_point_lists2(tree& z, const std_e::offset_permutation<I4>& permutation,
 auto
 renumber_point_lists_donated(donated_point_lists& plds, const std_e::offset_permutation<I4>& permutation, const std::string& grid_location) -> void {
   // TODO replace by multi_range iteration
-  for (int i=0; i<(int)plds.pls.size(); ++i) {
-    if (to_string(plds.locs[i])==grid_location) {
-      renumber_point_list2(plds.pls[i],permutation);
+  for (auto& pld : plds) {
+    if (to_string(pld.loc)==grid_location) {
+      renumber_point_list2(pld.pl,permutation);
     }
   }
 }
@@ -105,7 +105,7 @@ rm_invalid_ids_in_point_lists_with_donors(tree& z, const std::string& grid_locat
       int old_nb_pl = old_pl_val.size();
       for (int i=0; i<old_nb_pl; ++i) {
         //STD_E_ASSERT(old_pld_val[i]!=-1); // if donor, then it means that it was owned by the donor zone, hence, not deleted by it
-        if (old_pl_val[i]!=-1) {
+        if (old_pl_val[i]!=-1 && old_pld_val[i]!=-1) {
           new_pl_val.push_back(old_pl_val[i]);
           new_pld_val.push_back(old_pld_val[i]);
         }

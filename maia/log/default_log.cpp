@@ -3,7 +3,6 @@
 namespace {
 
 bool init_maia_default_logger() {
-  std_e::mpi_init_if_needed();
   // maia default logger
   //   - explicit_call by default: does not print anything unless explicitly called
   //   - only created if nothing else (does not overwrite if something else exists)

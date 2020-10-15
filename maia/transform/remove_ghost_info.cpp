@@ -22,6 +22,8 @@ remove_ghost_info(tree& b, factory F, MPI_Comm comm) -> void {
     rm_grid_connectivities(z,"FaceCenter",F);
     rm_grid_connectivities(z,"CellCenter",F);
   }
+
+  symmetrize_grid_connectivities(b,F,comm);
 }
 
 
@@ -123,13 +125,6 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
 
 
   // 4. gather all nodes used by elements
-  //std::vector<I4> nodes;
-  //for (const tree& elt_pool: elt_pools) {
-  //  auto cs = ElementConnectivity<I4>(elt_pool);
-  //  std::copy(begin(cs),end(cs),std::back_inserter(nodes));
-  //}
-  //std_e::sort_unique(nodes); // TODO: more efficient: counting sort-like algo
-
   /// 4.1. counting impl
   int old_nb_nodes = VertexSize_U<I4>(z);
   ELOG(old_nb_nodes);
@@ -149,34 +144,18 @@ remove_ghost_info_from_zone(tree& z, donated_point_lists& plds, factory F) -> vo
   }
   // 4.1. }  
 
-  tree& coords = get_child_by_name(z,"GridCoordinates");
-  //auto rind = view_as_span<I4>(get_child_by_name(coords,"Rind").value);
-  //auto first_ghost_node_id = VertexSize_U<I4>(z)+1 - rind[1];
-  //auto first_ghost_pos = std::lower_bound(begin(nodes),end(nodes),first_ghost_node_id);
-  //nodes.erase(first_ghost_pos,end(nodes));
-
-  //int nb_nodes = nodes.size();
   int nb_nodes2 = cnt;
-  //ELOG(nb_nodes);
-  ELOG(nb_nodes2);
-  //auto node_perm_at_0 = nodes;
-  //std_e::offset(node_perm_at_0,-1);
-  //std_e::offset_permutation node_perm(1,std::move(nodes)); // CGNS nodes indexed at 1
   
   // 5. delete unused nodes
-  //VertexSize_U<I4>(z) = nb_nodes;
   VertexSize_U<I4>(z) = nb_nodes2;
 
+  tree& coords = get_child_by_name(z,"GridCoordinates");
   F.rm_child_by_name(coords,"Rind");
 
   /// 5.0. renumber GridCoordinates
   for (tree& coord : get_children_by_label(coords,"DataArray_t")) {
     // TODO once pybind11: do not allocate/copy/del, only resize
     auto old_coord_val = view_as_span<R8>(coord.value);
-    //auto new_coord_val = make_cgns_vector<R8>(nb_nodes,F.alloc());
-    //for (int i=0; i<nb_nodes; ++i) { // TODO this is ~ std_e::permute_copy
-    //  new_coord_val[i] = old_coord_val[node_perm[i]];
-    //}
     auto new_coord_val = make_cgns_vector<R8>(nb_nodes2,F.alloc());
     for (I4 i=0; i<old_nb_nodes; ++i) {
       I4 new_node_pos = nodes2[i];
