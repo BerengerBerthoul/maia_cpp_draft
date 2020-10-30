@@ -29,7 +29,7 @@ class parallel_tree:
 
 def read_tree_for_FSDM(filename):
   dist_tree = load_dist_tree(filename)
-  part_tree = partition_tree(dist_tree,join_type='Vertex')
+  part_tree = partition_tree(dist_tree,join_type='Vertex') # par élément
 
   assign_zone_owner_to_vtx_joins(part_tree)
   reorder_with_non_owner_vtx_as_rind(part_tree)
